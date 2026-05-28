@@ -143,11 +143,11 @@ android {
         fdroid {
             minSdk = libs.versions.minSdk.get().toInteger()
             dimension = "version"
-            applicationId = "com.foobnix.pro.pdf.reader"
+            applicationId = "yuri.reader"
             manifestPlaceholders = [
-                    appName      : "Librera FD",
-                    appIcon      : "@mipmap/icon_pdf_pro",
-                    appRoundIcon : "@mipmap/icon_pdf_pro",
+                    appName      : "yReader",
+                    appIcon      : "@mipmap/icon_yreader",
+                    appRoundIcon : "@mipmap/icon_yreader",
                     appGdriveKey : "",
                     admobAppId   : "",
                     admobBannerId: "",
@@ -155,7 +155,7 @@ android {
                     admobRewardId  : "",
                     appSafeMode  : "true"
             ]
-            versionNameSuffix = '-fdroid'
+            versionNameSuffix = '-yreader'
         }
         librera {
             dimension = "version"

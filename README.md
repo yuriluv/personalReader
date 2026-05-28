@@ -14,9 +14,9 @@ Ukraine.**
 
 [Фонд Сергія Притули - Serhiy Prytula Charity Foundation](https://prytulafoundation.org/en/)
 
-# Librera Reader
+# YuriReader
 
-Librera Reader is an e-book reader for Android devices;
+YuriReader is an e-book reader for Android devices;
 it supports the following formats: PDF, EPUB, EPUB3, MOBI, DjVu, FB2, TXT, RTF, AZW, AZW3, HTML, CBZ, CBR, DOC, DOCX,
 and OPDS Catalogs
 
