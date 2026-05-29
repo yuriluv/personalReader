@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/pathContainer"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/wh_button"
+        android:layout_margin="@dimen/panel_padding"
+        android:background="@drawable/bg_search_second"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/onBack"
+            style="@style/buttonWhite"
+            android:layout_width="@dimen/wh_button"
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:contentDescription="@string/back"
+            android:src="@drawable/glyphicons_223_chevron_left" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="match_parent"
+            android:background="@color/tint_divider" />
+
+        <HorizontalScrollView
+            android:id="@+id/scroller"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dip"
+            android:layout_marginRight="2dip"
+            android:layout_weight="1"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/paths"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="@string/msg_loading"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <com.foobnix.pdf.info.view.MyProgressBar
+            android:id="@+id/MyProgressBarBrowse"
+            android:layout_width="@dimen/wh_button"
+
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:saveEnabled="false" />
+
+        <ImageView
+            android:id="@+id/pasteFrom"
+            style="@style/buttonWhite"
+            android:layout_width="@dimen/wh_button"
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:contentDescription="@string/create_folder"
+            android:padding="6dip"
+            android:src="@drawable/glyphicons_basic_613_paste"
+            android:tint="@color/tint_white" />
+
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="match_parent"
+            android:background="@color/tint_divider" />
+
+        <ImageView
+            android:id="@+id/createFolder"
+            style="@style/buttonWhite"
+            android:layout_width="@dimen/wh_button"
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:contentDescription="@string/create_folder"
+            android:padding="6dip"
+            android:src="@drawable/glyphicons_371_plus"
+            android:tint="@color/tint_white" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="match_parent"
+            android:background="@color/tint_divider" />
+
+        <ImageView
+            android:id="@+id/starIcon"
+            android:layout_width="@dimen/wh_button"
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="7dip"
+            android:src="@drawable/glyphicons_50_star_empty"
+            android:tint="@color/tint_gray"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="match_parent"
+            android:background="@color/tint_divider"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/onSort"
+            style="@style/buttonWhite"
+            android:layout_width="@dimen/wh_button"
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:contentDescription="@string/cd_sort_order"
+            android:src="@drawable/glyphicons_476_sort_attributes" />
+
+        <ImageView
+            android:id="@+id/sortOrder"
+            android:layout_width="@dimen/wh_button_small"
+            android:layout_height="@dimen/wh_button_small"
+            android:layout_weight="0"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:contentDescription="@string/cd_sort_order"
+            android:padding="4dip"
+            android:src="@drawable/glyphicons_222_chevron_up"
+            android:tint="@color/white" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="match_parent"
+            android:background="@color/tint_divider" />
+
+        <ImageView
+            android:id="@+id/onHome"
+            style="@style/buttonWhite"
+            android:layout_width="@dimen/wh_button"
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:contentDescription="@string/favorites"
+            android:src="@drawable/glyphicons_336_folder" />
+
+        <View
+            android:layout_width="1dip"
+            android:layout_height="match_parent"
+            android:background="@color/tint_divider" />
+
+        <ImageView
+            android:id="@+id/onListGrid"
+            style="@style/buttonWhite"
+            android:layout_width="@dimen/wh_button"
+            android:layout_height="@dimen/wh_button"
+            android:layout_weight="0"
+            android:contentDescription="@string/menu"
+            android:src="@drawable/my_glyphicons_114_paragraph_justify" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutOnGrant"
+        android:background="@color/green_msg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="4dip"
+        android:gravity="center_vertical"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:layout_weight="1"
+            android:textColor="@color/white"
+            android:text="@string/you_need_grant_permission5" />
+
+        <TextView
+            style="@style/textLinkWhite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:layout_weight="0"
+            android:gravity="center"
+            android:textAllCaps="true"
+            android:text="@string/yes" />
+    </LinearLayout>
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/openAsBook"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/panel_padding"
+        android:layout_marginRight="@dimen/panel_padding"
+        android:layout_marginBottom="@dimen/panel_padding"
+        android:background="?android:attr/selectableItemBackground"
+        android:elevation="@dimen/dv"
+        card_view:cardCornerRadius="@dimen/radius">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/openAsBookBg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/dv">
+
+            <ImageView
+                android:id="@+id/openAsbookImage"
+                android:layout_width="@dimen/wh_button"
+                android:layout_height="@dimen/wh_button"
+                android:layout_margin="4dip"
+                android:layout_weight="0"
+                android:padding="4dip"
+                android:src="@drawable/glyphicons_589_book_open"
+                android:tintMode="@color/tint_blue" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dip"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/text1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:singleLine="true"
+                    android:text="@string/open_folder_as_a_book"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+
+            <ImageView
+                android:id="@+id/starIconDir"
+                android:layout_width="@dimen/wh_button"
+                android:layout_height="@dimen/wh_button"
+                android:layout_marginRight="8dip"
+                android:layout_weight="0"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="7dip"
+                android:src="@drawable/glyphicons_50_star_empty"
+                android:tint="@color/tint_gray" />
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <FrameLayout
+        android:id="@+id/bankSpace"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <com.foobnix.ui2.fast.FastScrollRecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+
+    </FrameLayout>
+
+
+    <EditText
+        android:id="@+id/editPath"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/wh_button"
+        android:layout_margin="4dip"
+        android:background="@drawable/bg_search_edit"
+        android:ellipsize="end"
+        android:lines="2"
+        android:paddingLeft="4dip"></EditText>
+
+    <LinearLayout
+        android:id="@+id/onCloseActionPaner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0">
+
+        <Button
+            android:id="@+id/onClose"
+            style="@style/textLinkWhite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dip"
+            android:layout_weight="1"
+            android:background="@drawable/bg_search_second_clickable"
+            android:text="@string/close" />
+
+        <Button
+            android:id="@+id/onAction"
+            style="@style/textLinkWhite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dip"
+            android:layout_weight="1"
+            android:background="@drawable/bg_search_second_clickable"
+            android:text="@string/select" />
+    </LinearLayout>
+
+</LinearLayout>

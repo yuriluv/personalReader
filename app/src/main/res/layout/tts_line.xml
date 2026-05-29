@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+     >
+
+    <ImageView
+        android:id="@+id/ttsDialog"
+        android:layout_width="@dimen/wh_tts_button"
+        android:layout_height="@dimen/wh_tts_button"
+        android:background="@drawable/bg_clickable"
+        android:padding="2dip"
+        android:contentDescription="@string/settings"
+        android:src="@drawable/glyphicons_smileys_100_headphones" />
+
+    <ImageView
+        android:id="@+id/ttsPrev"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/wh_tts_button"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dp"
+        android:background="@drawable/bg_clickable"
+        android:contentDescription="@string/previous_page"
+        android:padding="2dp"
+        android:src="@drawable/glyphicons_173_rewind" />
+
+
+
+    <ImageView
+        android:id="@+id/ttsPlay"
+        android:layout_width="@dimen/wh_tts_button"
+        android:layout_height="@dimen/wh_tts_button"
+        android:layout_gravity="center"
+        android:contentDescription="@string/play_pause"
+        android:layout_marginLeft="10dp"
+        android:background="@drawable/bg_clickable"
+        android:src="@drawable/glyphicons_175_play" />
+
+
+    <ImageView
+        android:contentDescription="@string/next_page"
+
+        android:id="@+id/ttsNext"
+        android:layout_width="@dimen/wh_tts_button"
+        android:layout_height="@dimen/wh_tts_button"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dip"
+        android:background="@drawable/bg_clickable"
+        android:padding="2dp"
+        android:src="@drawable/glyphicons_177_forward" />
+    
+    
+    <ImageView
+        android:id="@+id/ttsPrevTrack"
+        android:contentDescription="@string/next_track"
+        android:layout_width="@dimen/wh_tts_button"
+        android:layout_height="@dimen/wh_tts_button"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dip"
+        android:background="@drawable/bg_clickable"
+        android:padding="2dp"
+        android:src="@drawable/glyphicons_172_skip_to_start" />
+    
+    
+    <ImageView
+        android:contentDescription="@string/previous_track"
+        android:id="@+id/ttsNextTrack"
+        android:layout_width="@dimen/wh_tts_button"
+        android:layout_height="@dimen/wh_tts_button"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_clickable"
+        android:padding="2dp"
+        android:src="@drawable/glyphicons_178_skip_to_end" />
+    
+
+    <ImageView
+        android:id="@+id/ttsStop"
+        android:layout_width="@dimen/wh_tts_button"
+        android:layout_height="@dimen/wh_tts_button"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dip"
+        android:contentDescription="@string/close"
+        android:background="@drawable/bg_clickable"
+        android:padding="8dp"
+        android:src="@drawable/glyphicons_599_menu_close" />
+
+</LinearLayout>

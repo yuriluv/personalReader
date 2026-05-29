@@ -1,0 +1,160 @@
+package org.ebookdroid.droids.mupdf.codec;
+
+import com.foobnix.android.utils.LOG;
+import com.foobnix.ext.Fb2Extractor;
+import com.foobnix.model.AppState;
+import com.foobnix.pdf.info.AppsConfig;
+import com.foobnix.sys.TempHolder;
+
+import org.ebookdroid.core.codec.AbstractCodecDocument;
+import org.ebookdroid.core.codec.OutlineLink;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class MuPdfOutline {
+
+    private static final float[] temp = new float[4];
+    public static final String EPUB_3_PAGES = "Epub3 pages";
+
+    private long docHandle;
+
+    private static native String getTitle(long dochandle, long outlinehandle);
+
+    private static native byte[] getTitleArray(long dochandle, long outlinehandle);
+
+    private static native String getLink(long outlinehandle, long dochandle);
+
+    private static native String getLinkUri(long outlinehandle, long dochandle);
+
+    private static native int fillLinkTargetPoint(long outlinehandle, float[] point);
+
+    private static native long getNext(long outlinehandle);
+
+    private static native long getChild(long outlinehandle);
+
+    private static native long open(long dochandle);
+
+    private static native void free(long dochandle);
+
+    public List<OutlineLink> getOutline(final AbstractCodecDocument document) {
+        if (document == null) {
+            return Collections.emptyList();
+        }
+        LOG.d("getOutline", "getOutline", document.getDocumentHandle());
+        final List<OutlineLink> ls = new ArrayList<OutlineLink>();
+        docHandle = document.getDocumentHandle();
+
+//        try {
+//            Thread.sleep(550);
+//        } catch (InterruptedException e) {
+//
+//        }
+
+        TempHolder.lock.lock();
+        try {
+            if (document.isRecycled()) {
+                LOG.d("getOutline isRecycled");
+                return Collections.emptyList();
+            }
+
+            final long outline = open(docHandle);
+
+            ttOutline(ls, outline, 0);
+
+            free(docHandle);
+
+            ls.add(new OutlineLink("", "", -1, docHandle, ""));
+        } finally {
+            TempHolder.lock.unlock();
+        }
+//        try {
+//            Thread.sleep(150);
+//        } catch (InterruptedException e) {
+//
+//        }
+
+        if (AppState.get().isShowPageNumbers && !Fb2Extractor.epub3Pages.isEmpty()) {
+            ls.add(new OutlineLink(EPUB_3_PAGES, "", 0, docHandle, ""));
+            for (int i : Fb2Extractor.epub3Pages.keySet()) {
+                ls.add(new OutlineLink("Page " + i, Fb2Extractor.epub3Pages.get(i), 1, docHandle,
+                        Fb2Extractor.epub3Pages.get(i)));
+            }
+        }
+
+        return ls;
+    }
+
+    public String getTitleMod(long outline) {
+
+        try {
+
+            byte[] titleArray = getTitleArray(docHandle, outline);
+            if (titleArray == null) {
+                return "";
+            }
+            return new String(titleArray, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private void ttOutline(final List<OutlineLink> ls, long outline, final int level) {
+        while (outline != -1) {
+            String title = getTitleMod(outline);
+            if (title == null) {
+                break;
+            }
+            // String title = new String(res);
+            String linkUri = getLinkUri(outline, docHandle);
+
+            final String link = getLink(outline, docHandle);
+
+            LOG.d("linkUri", linkUri, title, link);
+
+            if (AppState.get().isShowTestBooks && linkUri != null) {
+                title = title + "[" + linkUri + "]";
+
+            }
+
+            if (title != null) {
+                final OutlineLink outlineLink = new OutlineLink(title, link, level, docHandle, linkUri);
+
+                boolean toAdd = true;
+                if (AppState.get().outlineMode == AppState.OUTLINE_ONLY_HEADERS) {
+                    if (outlineLink.getTitle()
+                                   .contains("[subtitle]")) {
+                        toAdd = false;
+                    }
+                }
+                outlineLink.setTitle(outlineLink.getTitle()
+                                                .replace("[title]", "")
+                                                .replace("[subtitle]", ""));
+
+                if (outlineLink.getTitle()
+                               .contains(Fb2Extractor.DIVIDER)) {
+                    try {
+                        String[] split = outlineLink.getTitle()
+                                                    .split(Fb2Extractor.DIVIDER);
+                        int level2 = Integer.parseInt(split[0]);
+                        outlineLink.setLevel(level2);
+                        outlineLink.setTitle(split[1]);
+                    } catch (Exception e) {
+                        LOG.e(e);
+                    }
+                }
+
+                if (toAdd) {
+                    ls.add(outlineLink);
+                }
+            }
+
+            final long child = getChild(outline);
+            ttOutline(ls, child, level + 1);
+
+            outline = getNext(outline);
+        }
+    }
+}

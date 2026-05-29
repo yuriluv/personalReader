@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="4dip"
+        android:text="@string/exit_application_question"
+        android:textSize="20sp" />
+
+    <LinearLayout
+        android:id="@+id/topLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#77a248"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_weight="0"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="2dip">
+
+            <TextView
+                android:id="@+id/dialogTitle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:paddingLeft="10dip"
+                android:singleLine="true"
+                android:text="@string/message"
+                android:textColor="@color/white"
+                android:textStyle="bold"></TextView>
+
+            <ImageView
+                android:id="@+id/onClose"
+                style="@style/buttonWhiteClose"
+                android:layout_width="@dimen/wh_button_small"
+                android:layout_height="@dimen/wh_button_small"
+                android:layout_weight="0"
+                android:padding="4dip"
+                android:contentDescription="@string/close"
+                android:src="@drawable/glyphicons_599_menu_close" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/onAsk"
+            style="@style/textLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="4dip"
+            android:singleLine="false"
+            android:text="@string/ask_rate_us1"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/onRateUs"
+            style="@style/textLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="4dip"
+            android:layout_marginBottom="10dip"
+            android:singleLine="false"
+            android:layout_gravity="center"
+            android:text="@string/rate_app"
+            android:textAllCaps="true"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</LinearLayout>

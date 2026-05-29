@@ -1,0 +1,89 @@
+<ar>
+قراءة الكتب بسهولة 
+EPUB و PDF و Comics 
+تحديث محرك PDF
+</ar>
+
+<de-DE>
+Bücher einfach lesen 
+EPUB, PDF und Comics 
+PDF-Engine aktualisieren
+</de-DE>
+
+<fa>
+کتاب ها را به راحتی بخوانید 
+EPUB، PDF و کمیک 
+به روز رسانی موتور PDF
+</fa>
+
+<fr-FR>
+Lire des livres facilement 
+EPUB, PDF et BD 
+Mettre à jour le moteur PDF
+</fr-FR>
+
+<it-IT>
+Leggi libri facilmente 
+EPUB, PDF e fumetti 
+Aggiorna il motore PDF
+</it-IT>
+
+<ja-JP>
+*本を簡単に読む
+*EPUB、PDF、コミック
+*PDFエンジンを更新
+</ja-JP>
+
+<ko-KR>
+쉽게 책 읽기 
+EPUB, PDF 및 만화 
+PDF 엔진 업데이트
+</ko-KR>
+
+<pt-PT>
+Leia livros facilmente 
+EPUB, PDF e Quadrinhos 
+Atualize o mecanismo de PDF
+</pt-PT>
+
+<ru-RU>
+Удобное чтение книг 
+EPUB, PDF и комиксы 
+Обновление движка PDF
+</ru-RU>
+
+<th>
+อ่านหนังสือได้อย่างง่ายดาย 
+EPUB, PDF และการ์ตูน 
+อัปเดตเอ็นจิ้น PDF
+</th>
+
+<tr-TR>
+Kitapları kolayca okuyun 
+EPUB, PDF ve Çizgi Romanlar 
+PDF motorunu güncelleyin
+</tr-TR>
+
+<vi>
+Đọc sách dễ dàng 
+EPUB, PDF và Truyện tranh 
+Cập nhật công cụ PDF
+</vi>
+
+<zh-CN>
+轻松阅读书籍 
+EPUB、PDF 和漫画 
+更新 PDF 引擎
+</zh-CN>
+
+<zh-TW>
+輕鬆閱讀書籍 
+EPUB、PDF 和漫畫 
+更新 PDF 引擎
+</zh-TW>
+
+<en-US>
+Read books easily
+EPUB, PDF and Comics
+Update PDF engine
+</en-US>

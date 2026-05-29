@@ -1,0 +1,3 @@
+* Read books easily
+* EPUB, PDF and Comics
+* Update PDF engine
