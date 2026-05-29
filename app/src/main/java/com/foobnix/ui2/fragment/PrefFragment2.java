@@ -357,13 +357,6 @@ public class PrefFragment2 extends UIFragment {
             @Override public void run() {
                 dragLinearLayout.removeAllViews();
                 for (UITab tab : UITab.getOrdered()) {
-//                    if (tab == UITab.GoogleDrive2Fragment) {//SKIP for all
-//                        continue;
-//                    }
-
-                    if (AppsConfig.IS_FDROID && tab == UITab.GoogleDrive2Fragment) {
-                        continue;
-                    }
 
                     View library = LayoutInflater.from(getActivity())
                                                  .inflate(R.layout.item_tab_line, null, false);
