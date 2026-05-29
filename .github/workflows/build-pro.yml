@@ -2,10 +2,10 @@ name: Build YuriReader (Pro ARM64)
 
 on:
   push:
-    branches: [master]
+    branches: ['*']
     tags: ['v*']
   pull_request:
-    branches: [master]
+    branches: ['*']
 
 # Cancel in-progress runs for the same branch/PR
 concurrency:
@@ -194,3 +194,4 @@ jobs:
           files: app/build/outputs/apk/pro/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
