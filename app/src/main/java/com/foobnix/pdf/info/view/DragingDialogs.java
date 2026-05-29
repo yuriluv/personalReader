@@ -2854,7 +2854,7 @@ public class DragingDialogs {
 
                 final View.OnClickListener onQuickBookmark = new View.OnClickListener() {
                     @Override public void onClick(final View v) {
-                        TTSEngine.fastTTSBookmakr(controller);
+        TTSEngine.get().fastTTSBookmakr(controller);
                         closeDialog();
                         onRefeshUI.run();
                     }

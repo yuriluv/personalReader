@@ -1,6 +1,7 @@
 package com.foobnix.pdf.info;
 
 import android.app.Activity;
+import android.content.Context;
 
 public class ADS {
     private final static ADS instance = new ADS();
@@ -40,4 +41,8 @@ public class ADS {
     public void onResumeBanner(Activity a) {}
 
     public void onDestroyBanner() {}
+
+    public static String getByTestID(Context c) {
+        return "";
+    }
 }

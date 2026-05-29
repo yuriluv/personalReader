@@ -786,12 +786,10 @@ public class MainTabs2 extends AdsFragmentActivity {
         return super.onKeyLongPress(keyCode, event);
     }
 
-    @Override
     public void onFinishActivity() {
         finish();
     }
 
-    @Override
     public void onBackPressedImpl() {
 //        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
 //            drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);

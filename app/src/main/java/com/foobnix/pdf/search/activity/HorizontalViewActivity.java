@@ -2062,9 +2062,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     }
 
-    @Override
     public void onRewardLoaded() {
-        super.onRewardLoaded();
         ViewBinder.hideShowRewardButton(this, showRewardVideo);
     }
 
@@ -2419,7 +2417,6 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         return super.onKeyLongPress(keyCode, event);
     }
 
-    @Override
     public void onBackPressedFinishImpl() {
         showInterstitial();
     }
@@ -2448,7 +2445,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     };
 
     @Override
-    public void onBackPressedImpl() {
+    public void onBackPressed() {
         // Toast.makeText(this, "onBackPressed", Toast.LENGTH_SHORT).show();
 
         if (dc != null && dc.floatingBookmark != null) {

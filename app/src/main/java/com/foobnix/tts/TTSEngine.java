@@ -11,6 +11,7 @@ public class TTSEngine {
 
     public void shutdown() {}
     public void stop() {}
+    public void stop(Object tts) {}
     public boolean isShutdown() { return true; }
     public boolean isTempPausing() { return false; }
     public boolean isPlaying() { return false; }
