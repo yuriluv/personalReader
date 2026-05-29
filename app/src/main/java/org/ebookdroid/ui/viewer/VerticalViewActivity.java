@@ -2,7 +2,6 @@ package org.ebookdroid.ui.viewer;
 
 import android.util.DisplayMetrics;
 
-import org.ebookdroid.common.settings.books.BookSettings;
 import org.emdev.ui.AbstractActionActivity;
 
 public class VerticalViewActivity extends AbstractActionActivity<VerticalViewActivity, ViewerActivityController> {
