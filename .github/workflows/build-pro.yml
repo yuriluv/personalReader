@@ -143,6 +143,7 @@ jobs:
       - name: Build Pro debug APK (PR/push)
         if: "!startsWith(github.ref, 'refs/tags/v')"
         run: |
+          chmod +x gradlew
           ./gradlew assembleProDebug
 
       - name: Build Pro release APK (tag)
@@ -164,6 +165,7 @@ jobs:
             -validity 10000 \
             -dname "CN=YuriReader,OU=Build,O=YuriReader,L=Seoul,C=KR"
 
+          chmod +x gradlew
           ./gradlew assembleProRelease \
             -PRELEASE_STORE_FILE="$_KEYSTORE_PATH" \
             -PRELEASE_STORE_PASSWORD="$_KEYSTORE_PASS" \
