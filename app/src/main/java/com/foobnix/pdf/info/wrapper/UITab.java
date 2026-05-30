@@ -67,13 +67,37 @@ public enum UITab {
             String input = AppState.get().tabsOrder9;
             LOG.d("getOrdered", input);
             List<UITab> list = new ArrayList<UITab>();
+            List<Integer> seenIndices = new ArrayList<>();
             for (String pair : input.split(",")) {
                 String[] tab = pair.split("#");
                 int id = Integer.valueOf(tab[0]);
                 boolean isVisible = tab[1].equals("1");
+                // Skip unknown tab indices (e.g., CloudsFragment removed)
+                boolean knownTab = false;
+                for (UITab t : values()) {
+                    if (t.index == id) { knownTab = true; break; }
+                }
+                if (!knownTab) {
+                    LOG.d("getOrdered", "Skipping unknown tab index: " + id);
+                    continue;
+                }
+                // Skip duplicate tab indices
+                if (seenIndices.contains(id)) {
+                    LOG.d("getOrdered", "Skipping duplicate tab index: " + id);
+                    continue;
+                }
+                seenIndices.add(id);
                 UITab byIndex = getByIndex(id);
                 byIndex.setVisible(isVisible);
                 list.add(byIndex);
+            }
+            // Ensure all known tabs are present even if missing from stored order
+            for (UITab t : values()) {
+                if (!seenIndices.contains(t.index)) {
+                    t.setVisible(t == PrefFragment ? false : true);
+                    list.add(t);
+                    seenIndices.add(t.index);
+                }
             }
             return list;
         }
