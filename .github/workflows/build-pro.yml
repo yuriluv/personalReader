@@ -140,14 +140,7 @@ jobs:
           restore-keys: |
             gradle-
 
-      - name: Build Pro debug APK (PR/push)
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleProDebug
-
-      - name: Build Pro release APK (tag)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Build Pro release APK
         run: |
           # Generate a CI keystore for release builds.
           _KEYSTORE_PATH="$HOME/release.keystore"
@@ -172,16 +165,7 @@ jobs:
             -PRELEASE_KEY_ALIAS="$_KEY_ALIAS" \
             -PRELEASE_KEY_PASSWORD="$_KEY_PASS"
 
-      - name: Upload debug APK artifact
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        uses: actions/upload-artifact@v4
-        with:
-          name: yurireader-pro-arm64-debug
-          path: app/build/outputs/apk/pro/debug/*.apk
-          retention-days: 30
-
       - name: Upload release APK artifact
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: yurireader-pro-arm64-release
