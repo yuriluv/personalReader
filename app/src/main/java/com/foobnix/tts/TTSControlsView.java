@@ -19,4 +19,5 @@ public class TTSControlsView extends FrameLayout {
 
     public void setDC(Object dc) {}
     public void addOnDialogRunnable(Runnable runnable) {}
+    public void udateButtons() {}
 }

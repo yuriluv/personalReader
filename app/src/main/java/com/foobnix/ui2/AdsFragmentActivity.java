@@ -27,6 +27,6 @@ public class AdsFragmentActivity extends AppCompatActivity {
         return rewardLoaded;
     }
 
-    public void showRewardVideo(Object callback) {
+    public void showRewardVideo(Runnable callback) {
     }
 }

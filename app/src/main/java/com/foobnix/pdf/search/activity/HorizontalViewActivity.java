@@ -2471,7 +2471,6 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         }
     }
 
-    @Override
     public void onFinishActivity() {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);

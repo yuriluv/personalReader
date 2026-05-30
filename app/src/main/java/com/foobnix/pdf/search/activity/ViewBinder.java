@@ -52,8 +52,7 @@ public class ViewBinder {
             showRewardVideo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    a.showRewardVideo(rewardItem -> {
-
+                    a.showRewardVideo(() -> {
                         showRewardVideo.setVisibility(View.GONE);
                     });
                 }

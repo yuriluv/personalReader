@@ -806,7 +806,6 @@ public class MainTabs2 extends AdsFragmentActivity {
         }
     }
 
-    @Override
     public void onBackPressedFinishImpl() {
         closeActivityRunnable.run();
     }

@@ -2740,7 +2740,7 @@ public class DragingDialogs {
         if (controller == null) {
             return;
         }
-        TTSEngine.fastTTSBookmakr(controller);
+        TTSEngine.get().fastTTSBookmakr(controller);
     }
 
     public static void dialogShowBookmarks(final FrameLayout anchor,
