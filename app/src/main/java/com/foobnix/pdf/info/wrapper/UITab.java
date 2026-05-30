@@ -72,7 +72,8 @@ public enum UITab {
                 String[] tab = pair.split("#");
                 int id = Integer.valueOf(tab[0]);
                 boolean isVisible = tab[1].equals("1");
-                // Skip unknown tab indices (e.g., CloudsFragment removed)
+                // Skip unknown tab indices inherited from original Librera settings
+                // (e.g., removed OPDS / Google Drive tabs)
                 boolean knownTab = false;
                 for (UITab t : values()) {
                     if (t.index == id) { knownTab = true; break; }

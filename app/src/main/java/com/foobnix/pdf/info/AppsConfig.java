@@ -32,6 +32,8 @@ public class AppsConfig {
     public static final boolean
             IS_FDROID =
             LibreraBuildConfig.FLAVOR.equals("fdroid") || LibreraBuildConfig.FLAVOR.equals("huawei");
+    public static final boolean IS_YREADER = "yuri.reader".equals(LibreraBuildConfig.APPLICATION_ID);
+    public static final boolean IS_HIDE_CLOUD_SYNC_UI = IS_FDROID || IS_YREADER;
     public static final List<String> testDevices = Arrays.asList(
             "77EA5ED1B6B3C6C8511E2696FB1B7D08",
             "394FC2536F98E69D313F47CA4B26AB2D",
