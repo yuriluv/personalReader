@@ -111,11 +111,11 @@ android {
     productFlavors {
         pro {
             dimension = "version"
-            applicationId = "com.foobnix.pro.pdf.reader"
+            applicationId = "yuri.reader"
             manifestPlaceholders = [
-                    appName      : "Librera",
-                    appIcon      : "@mipmap/icon_pdf_pro",
-                    appRoundIcon : "@mipmap/icon_pdf_pro",
+                    appName      : "yReader",
+                    appIcon      : "@mipmap/icon_yreader",
+                    appRoundIcon : "@mipmap/icon_yreader",
                     appGdriveKey : "",
                     admobAppId   : "",
                     admobBannerId: "",
@@ -151,13 +151,13 @@ android {
                 output.versionCodeOverride = code
                 //def fullName = "Librera ${flavor}-${versionNumber}-c${code}-d${db}-${abiName}.apk"
 
-                def fullName = "Librera ${flavor}-${versionNumber}-${abiName}.apk"
+                def fullName = "yReader-${versionNumber}-${abiName}.apk"
 
                 output.outputFileName = fullName
             } else {
                 //def fullName = "Librera ${flavor}-${versionNumber}-c${codeNumber}-d${db}-universal.apk"
                 //def fullName = "Librera ${flavor}-${versionNumber}-universal.apk"
-                def fullName = "Librera ${flavor}-${versionNumber}-uni.apk"
+                def fullName = "yReader-${versionNumber}-uni.apk"
                 output.versionCodeOverride = codeNumber
                 output.outputFileName = fullName
             }
