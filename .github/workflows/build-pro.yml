@@ -175,10 +175,21 @@ jobs:
           path: app/build/outputs/apk/pro/release/*.apk
           retention-days: 90
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Determine release tag
+        id: release-tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create/update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag: ${{ steps.release-tag.outputs.tag }}
+          name: ${{ steps.release-tag.outputs.tag == 'latest' && 'Latest Build' || steps.release-tag.outputs.tag }}
+          prerelease: ${{ steps.release-tag.outputs.tag == 'latest' }}
           generate_release_notes: true
           files: app/build/outputs/apk/pro/release/*.apk
         env:
