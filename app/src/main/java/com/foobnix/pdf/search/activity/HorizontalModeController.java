@@ -136,48 +136,17 @@ public abstract class HorizontalModeController extends DocumentController {
             throw new IllegalArgumentException("Failed to open document: " + bookPath);
         }
 
-        // Start async page counting.
-        // If accelerator exists (re-open), getPageCount() returns instantly.
-        // If not (first open), getPageCount() blocks until all chapters are laid out.
-        // We call it on the current background thread (CopyAsyncTask) and let
-        // the caller decide whether to use the result immediately or show a placeholder.
-        pagesCount = codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
-        if (pagesCount > 0) {
-            pageCountPending = false;
-        } else {
-            // This shouldn't happen for valid documents, but handle gracefully.
-            pageCountPending = true;
-            pagesCount = 1; // Placeholder: allow activity to show first page
-        }
-
-        try {
-            if (!pageCountPending) {
-                FileMeta meta = AppDB.get()
-                                     .load(bookPath);
-                if (meta != null) {
-                    meta.setPages(pagesCount);
-                    AppDB.get()
-                         .update(meta);
-                    LOG.d("update openDocument.getPageCount()", bookPath, pagesCount);
-                }
-            }
-        } catch (Exception e) {
-            LOG.e(e);
-        }
+        // Defer page counting to async phase.
+        // The constructor returns immediately; the caller must call
+        // resolvePageCount() on a background thread to get the real count.
+        // After resolvePageCount(), the Activity receives onPageCountReady().
+        pageCountPending = true;
+        pagesCount = 1; // Placeholder: allow activity to show first page
 
         AppDB.get()
              .addRecent(bookPath);
 
-        float percent = Intents.getFloatAndClear(activity.getIntent(), DocumentController.EXTRA_PERCENT);
-
-        if (percent > 0.0f) {
-            currentPage = Math.round(pagesCount * percent) - 1;
-        } else if (pagesCount > 0) {
-            currentPage = bs.getCurrentPage(getPageCount()).viewIndex;
-        }
-        if (AppState.get().isAlwaysOpenOnPage1) {
-            currentPage = 0;
-        }
+        currentPage = 0; // Start at first page; adjusted in resolvePageCount
 
         if (false) {
             PageImageState.get().needAutoFit = true;
@@ -517,6 +486,17 @@ public abstract class HorizontalModeController extends DocumentController {
         this.pagesCount = realPageCount;
         this.pageCountPending = false;
 
+        // Restore the user's last-read position now that we know the real page count.
+        float percent = Intents.getFloatAndClear(activity.getIntent(), DocumentController.EXTRA_PERCENT);
+        if (percent > 0.0f) {
+            currentPage = Math.round(pagesCount * percent) - 1;
+        } else {
+            currentPage = bs.getCurrentPage(getPageCount()).viewIndex;
+        }
+        if (AppState.get().isAlwaysOpenOnPage1) {
+            currentPage = 0;
+        }
+
         try {
             FileMeta meta = AppDB.get().load(bookPath);
             if (meta != null) {
@@ -531,6 +511,22 @@ public abstract class HorizontalModeController extends DocumentController {
 
     public boolean isPageCountPending() {
         return pageCountPending;
+    }
+
+    /**
+     * Resolves the real page count on a background thread.
+     * Must be called after the constructor completes (doc is already open).
+     * Returns the real page count, or -1 on error.
+     */
+    public int resolvePageCount() {
+        if (codeDocument == null) {
+            return -1;
+        }
+        int count = codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
+        if (count > 0) {
+            onPageCountReady(count);
+        }
+        return count;
     }
 
     @Override public void onScrollY(int value) {

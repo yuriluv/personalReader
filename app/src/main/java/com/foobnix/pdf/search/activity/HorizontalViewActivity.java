@@ -991,6 +991,8 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                     }
                     LOG.d("viewPager", viewPager.getHeight() + "x" + viewPager.getWidth());
                     initAsync(viewPager.getWidth(), viewPager.getHeight());
+                    // Init async is immediate: doc is open but pageCount is 1 (placeholder).
+                    // We'll resolve the real page count in onPostExecute via resolvePageCount().
                 } catch (MuPdfPasswordException e) {
                     return -1;
                 } catch (RuntimeException e) {
@@ -1157,11 +1159,26 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                     DialogsPlaylist.dispalyPlaylist(HorizontalViewActivity.this, dc);
 
                     // RecentUpates.updateAll(HorizontalViewActivity.this);
-                    if (dc.getPageCount() == 0) {
+                    if (dc.getPageCount() == 0 && !dc.isPageCountPending()) {
+                        // Only show close button if page count is truly 0 (not just pending)
                         onClose.setVisibility(View.VISIBLE);
                     }
 
                     HypenPanelHelper.init(parentParent, dc);
+
+                    // Start async page count resolution if pending.
+                    // If accelerator exists (re-open), this returns instantly.
+                    // If not (first open), this runs getPageCount() on a background thread.
+                    if (dc.isPageCountPending()) {
+                        final HorizontalModeController dcRef = dc;
+                        AppsConfig.executorService.submit(() -> {
+                            int count = dcRef.resolvePageCount();
+                            LOG.d("AsyncPageCount", "resolved:", count);
+                            if (count > 0) {
+                                HorizontalViewActivity.this.onPageCountReady(count);
+                            }
+                        });
+                    }
 
                 }
 
