@@ -27,6 +27,31 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Bump version
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
+        run: |
+          PROPS="app/gradle.properties"
+          IDX=$(grep 'appVersionNumberIndex=' "$PROPS" | cut -d= -f2)
+          NEW_IDX=$((IDX + 1))
+          sed -i "s/appVersionNumberIndex=.*/appVersionNumberIndex=${NEW_IDX}/" "$PROPS"
+          CODE=$(grep 'appCodeNumber=' "$PROPS" | cut -d= -f2)
+          NEW_CODE=$((CODE + 1))
+          sed -i "s/appCodeNumber=.*/appCodeNumber=${NEW_CODE}/" "$PROPS"
+          echo "Bumped version: index ${IDX} -> ${NEW_IDX}, code ${CODE} -> ${NEW_CODE}"
+          cat "$PROPS"
+
+      - name: Commit version bump
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/gradle.properties
+          git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
+          git push
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -77,7 +102,6 @@ jobs:
           cd ..
           MUPDF_ROOT="$PWD/mupdf-${{ env.MUPDF_VERSION }}"
           MUPDF_JAVA="$MUPDF_ROOT/platform/librera"
-          # Copy Librera's JNI directory (includes Android.mk, Application.mk, etc.)
           mkdir -p "$MUPDF_JAVA"
           rm -rf "$MUPDF_JAVA/jni"
           cp -Rp jni "$MUPDF_JAVA/jni"
@@ -85,7 +109,6 @@ jobs:
             mv "$MUPDF_JAVA/jni/Android-${{ env.MUPDF_VERSION }}.mk" "$MUPDF_JAVA/jni/Android.mk"
           fi
 
-          # Apply Librera patches to MuPDF source
           SRC="jni/~mupdf-${{ env.MUPDF_VERSION }}"
           DEST="$MUPDF_ROOT/source"
           if [ -d "$SRC" ]; then
@@ -115,8 +138,6 @@ jobs:
           echo "=== Building JNI libraries with NDK (ARM64 Only) ==="
           cd "$MUPDF_JAVA"
           NDK_BUILD="$ANDROID_HOME/ndk/${{ env.NDK_VERSION }}/ndk-build"
-
-          # Only build arm64-v8a
           $NDK_BUILD NDK_PROJECT_PATH=. NDK_APPLICATION_MK=jni/Application.mk APP_ABI=arm64-v8a APP_PLATFORM=android-24
 
           echo "=== Copying .so files to jniLibs ==="
@@ -124,7 +145,6 @@ jobs:
           rm -rf "$LIBS"
           mkdir -p "$LIBS"
           cp -rp "$MUPDF_JAVA/libs/arm64-v8a" "$LIBS/"
-
           echo "=== .so files ==="
           find "$LIBS" -name "*.so" | head -20
 
@@ -143,30 +163,18 @@ jobs:
           restore-keys: |
             gradle-
 
+      - name: Decode release keystore
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$HOME/release.keystore"
+
       - name: Build Pro release APK
         run: |
-          # Generate a CI keystore for release builds.
-          _KEYSTORE_PATH="$HOME/release.keystore"
-          _KEYSTORE_PASS="android"
-          _KEY_ALIAS="release"
-          _KEY_PASS="android"
-
-          keytool -genkeypair -v \
-            -keystore "$_KEYSTORE_PATH" \
-            -storepass "$_KEYSTORE_PASS" \
-            -alias "$_KEY_ALIAS" \
-            -keypass "$_KEY_PASS" \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=YuriReader,OU=Build,O=YuriReader,L=Seoul,C=KR"
-
           chmod +x gradlew
           ./gradlew assembleProRelease \
-            -PRELEASE_STORE_FILE="$_KEYSTORE_PATH" \
-            -PRELEASE_STORE_PASSWORD="$_KEYSTORE_PASS" \
-            -PRELEASE_KEY_ALIAS="$_KEY_ALIAS" \
-            -PRELEASE_KEY_PASSWORD="$_KEY_PASS"
+            -PRELEASE_STORE_FILE="$HOME/release.keystore" \
+            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" \
+            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
+            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}"
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
@@ -205,4 +213,3 @@ jobs:
           files: app/build/outputs/apk/pro/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
