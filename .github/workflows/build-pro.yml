@@ -187,7 +187,7 @@ jobs:
       - name: Create/update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag: ${{ steps.release-tag.outputs.tag }}
+          tag_name: ${{ steps.release-tag.outputs.tag }}
           name: ${{ steps.release-tag.outputs.tag == 'latest' && 'Latest Build' || steps.release-tag.outputs.tag }}
           prerelease: ${{ steps.release-tag.outputs.tag == 'latest' }}
           generate_release_notes: true
