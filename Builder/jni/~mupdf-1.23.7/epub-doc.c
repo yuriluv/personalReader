@@ -25,6 +25,8 @@
 
 #include <string.h>
 #include <math.h>
+#include <time.h>
+#include <android/log.h>
 
 #include <zlib.h> /* for crc32 */
 
