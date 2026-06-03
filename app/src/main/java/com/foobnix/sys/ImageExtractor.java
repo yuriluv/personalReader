@@ -245,7 +245,9 @@ public class ImageExtractor {
         }
         LOG.d("openDocumentWithoutCount new", path, w, h);
 
+        long t0 = System.currentTimeMillis();
         clearCodeDocument();
+        android.util.Log.d("PERF-epub", "  clearCodeDocument dt=" + (System.currentTimeMillis() - t0) + "ms");
 
         pageCount = 0;
         pathCache = null;
@@ -255,12 +257,16 @@ public class ImageExtractor {
             h = Dips.screenHeight();
         }
 
+        long t1 = System.currentTimeMillis();
         CodecContext ctx = BookType.getCodecContextByPath(path);
+        android.util.Log.d("PERF-epub", "  getCodecContextByPath dt=" + (System.currentTimeMillis() - t1) + "ms");
         if (ctx == null) {
             return null;
         }
 
+        long t2 = System.currentTimeMillis();
         codeCache = ctx.openDocument(path, passw);
+        android.util.Log.d("PERF-epub", "  ctx.openDocument dt=" + (System.currentTimeMillis() - t2) + "ms");
         if (codeCache == null) {
             LOG.d("openDocumentWithoutCount [Open doc is null]", path);
             return null;
