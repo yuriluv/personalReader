@@ -1075,12 +1075,14 @@ static fz_document *
 epub_init(fz_context *ctx, fz_archive *zip, fz_stream *accel)
 {
 	epub_document *doc = NULL;
+	struct timespec t0, t1;
 
 	fz_var(doc);
 	fz_var(zip);
 
 	fz_try(ctx)
 	{
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		doc = fz_new_derived_document(ctx, epub_document);
 		doc->zip = zip;
 		zip = NULL;
@@ -1099,10 +1101,24 @@ epub_init(fz_context *ctx, fz_archive *zip, fz_stream *accel)
 		doc->super.output_accelerator = epub_output_accelerator;
 		doc->super.is_reflowable = 1;
 
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: init_struct dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
+
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		doc->set = fz_new_html_font_set(ctx);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: fz_new_html_font_set dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
+
 		doc->css_sum = user_css_sum(ctx);
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		epub_load_accelerator(ctx, doc, accel);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: epub_load_accelerator dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
+
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		epub_parse_header(ctx, doc);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: epub_parse_header dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
 	}
 	fz_catch(ctx)
 	{
@@ -1135,7 +1151,11 @@ epub_open_document(fz_context *ctx, fz_stream *file, fz_stream *accel, fz_archiv
 	else
 	{
 		/* File case: file != NULL and dir can be ignored. */
+		struct timespec t0, t1;
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		zip = fz_open_archive_with_stream(ctx, file);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: fz_open_archive_with_stream dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
 	}
 
 

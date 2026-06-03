@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../ebookdroid.h"
 #include "../javahelpers.h"
@@ -290,6 +291,9 @@ JNIEXPORT jlong
     }
     DEBUG("MuPdfDocument.nativeOpen(): storememory = %d", storememory);
 
+    struct timespec t0jni, t1jni;
+
+    clock_gettime(CLOCK_MONOTONIC, &t0jni);
     doc->ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
     // doc->ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
     //  doc->ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
@@ -304,7 +308,13 @@ JNIEXPORT jlong
 
     fz_register_document_handlers(doc->ctx);
 
+    clock_gettime(CLOCK_MONOTONIC, &t1jni);
+    __android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: fz_new_context+register dt=%dms", (int)((t1jni.tv_sec - t0jni.tv_sec)*1000 + (t1jni.tv_nsec - t0jni.tv_nsec)/1000000));
+
+    clock_gettime(CLOCK_MONOTONIC, &t0jni);
     fz_install_load_system_font_funcs(doc->ctx, load_droid_font, load_droid_cjk_font, load_droid_fallback_font);
+    clock_gettime(CLOCK_MONOTONIC, &t1jni);
+    __android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: fz_install_load_system_font_funcs dt=%dms", (int)((t1jni.tv_sec - t0jni.tv_sec)*1000 + (t1jni.tv_nsec - t0jni.tv_nsec)/1000000));
 
     fz_set_user_css(doc->ctx, css);
     fz_set_use_document_css(doc->ctx, isDocCSS);
@@ -321,11 +331,14 @@ JNIEXPORT jlong
 
         doc->accel = accel;
         int atime = fz_stat_mtime(accel);
+        clock_gettime(CLOCK_MONOTONIC, &t0jni);
         if (atime == 0) {
             doc->document = (fz_document*)fz_open_accelerated_document(doc->ctx, filename, NULL);
         } else {
             doc->document = (fz_document*)fz_open_accelerated_document(doc->ctx, filename, accel);
         }
+        clock_gettime(CLOCK_MONOTONIC, &t1jni);
+        __android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: fz_open_accelerated_document dt=%dms", (int)((t1jni.tv_sec - t0jni.tv_sec)*1000 + (t1jni.tv_nsec - t0jni.tv_nsec)/1000000));
 
         // fz_drop_context(doc->ctx);
         // fz_set_user_css(doc->ctx,css);
