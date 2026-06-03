@@ -518,16 +518,14 @@ public abstract class HorizontalModeController extends DocumentController {
      * Resolves the real page count on a background thread.
      * Must be called after the constructor completes (doc is already open).
      * Returns the real page count, or -1 on error.
+     * NOTE: Does NOT update pagesCount — the caller must invoke
+     * onPageCountReady() on the UI thread to avoid ViewPager races.
      */
     public int resolvePageCount() {
         if (codeDocument == null) {
             return -1;
         }
-        int count = codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
-        if (count > 0) {
-            onPageCountReady(count);
-        }
-        return count;
+        return codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
     }
 
     @Override public void onScrollY(int value) {

@@ -1893,10 +1893,13 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
      */
     public void onPageCountReady(int realPageCount) {
         if (dc == null) return;
-        dc.onPageCountReady(realPageCount);
         LOG.d("onPageCountReady", realPageCount);
 
         runOnUiThread(() -> {
+            // Update page count on UI thread to avoid ViewPager crash
+            // "Expected adapter item count: 1, found: N"
+            dc.onPageCountReady(realPageCount);
+
             // Recreate adapter with the real page count
             createAdapter();
             viewPager.setCurrentItem(dc.getCurentPage(), false);
