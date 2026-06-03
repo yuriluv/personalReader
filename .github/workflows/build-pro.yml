@@ -35,8 +35,14 @@ jobs:
         if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
         run: |
           PROPS="app/gradle.properties"
+          BASE=$(grep 'appVersionNumberBase=' "$PROPS" | cut -d= -f2)
           IDX=$(grep 'appVersionNumberIndex=' "$PROPS" | cut -d= -f2)
           NEW_IDX=$((IDX + 1))
+          # Keep bumping if tag already exists
+          while git tag -l | grep -q "^v${BASE}\.${NEW_IDX}$"; do
+            echo "Tag v${BASE}.${NEW_IDX} already exists, bumping again"
+            NEW_IDX=$((NEW_IDX + 1))
+          done
           sed -i "s/appVersionNumberIndex=.*/appVersionNumberIndex=${NEW_IDX}/" "$PROPS"
           CODE=$(grep 'appCodeNumber=' "$PROPS" | cut -d= -f2)
           NEW_CODE=$((CODE + 1))
