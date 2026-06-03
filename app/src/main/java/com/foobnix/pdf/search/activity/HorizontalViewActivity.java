@@ -1900,8 +1900,13 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             // "Expected adapter item count: 1, found: N"
             dc.onPageCountReady(realPageCount);
 
-            // Recreate adapter with the real page count
-            createAdapter();
+            // Notify adapter that count changed — avoids full recreate (no flicker).
+            // ViewPager will re-query getCount() and request new pages incrementally.
+            if (pagerAdapter != null) {
+                pagerAdapter.notifyDataSetChanged();
+            }
+
+            // Ensure current page is correct after count update
             viewPager.setCurrentItem(dc.getCurentPage(), false);
 
             // Update seek bar and progress indicators
