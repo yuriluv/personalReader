@@ -488,9 +488,10 @@ public abstract class HorizontalModeController extends DocumentController {
 
         // Restore the user's last-read position now that we know the real page count.
         float percent = Intents.getFloatAndClear(activity.getIntent(), DocumentController.EXTRA_PERCENT);
+        AppBook bs = SettingsManager.getBookSettings(bookPath);
         if (percent > 0.0f) {
             currentPage = Math.round(pagesCount * percent) - 1;
-        } else {
+        } else if (bs != null) {
             currentPage = bs.getCurrentPage(getPageCount()).viewIndex;
         }
         if (AppState.get().isAlwaysOpenOnPage1) {
