@@ -954,6 +954,12 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                         finish();
                     }
                 });
+                // Dismiss immediately — async page counting means we show the first
+                // page right away and update the count in the background.
+                // The dialog is only kept for the cancel callback above.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
             }
 
             @Override
