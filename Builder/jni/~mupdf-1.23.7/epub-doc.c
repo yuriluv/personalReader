@@ -1070,6 +1070,7 @@ static fz_document *
 epub_init(fz_context *ctx, fz_archive *zip, fz_stream *accel)
 {
 	epub_document *doc = NULL;
+	struct timespec t0, t1;
 
 	fz_var(doc);
 	fz_var(zip);
@@ -1094,10 +1095,21 @@ epub_init(fz_context *ctx, fz_archive *zip, fz_stream *accel)
 		doc->super.output_accelerator = epub_output_accelerator;
 		doc->super.is_reflowable = 1;
 
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		doc->set = fz_new_html_font_set(ctx);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: fz_new_html_font_set dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
+
 		doc->css_sum = user_css_sum(ctx);
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		epub_load_accelerator(ctx, doc, accel);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: epub_load_accelerator dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
+
+		clock_gettime(CLOCK_MONOTONIC, &t0);
 		epub_parse_header(ctx, doc);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: epub_parse_header dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
 	}
 	fz_catch(ctx)
 	{
@@ -1112,7 +1124,13 @@ epub_init(fz_context *ctx, fz_archive *zip, fz_stream *accel)
 static fz_document *
 epub_open_accel_document_with_stream(fz_context *ctx, fz_stream *file, fz_stream *accel)
 {
-	return epub_init(ctx, fz_open_zip_archive_with_stream(ctx, file), accel);
+	struct timespec t0, t1;
+	fz_archive *zip;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
+	zip = fz_open_zip_archive_with_stream(ctx, file);
+	clock_gettime(CLOCK_MONOTONIC, &t1);
+	__android_log_print(ANDROID_LOG_DEBUG, "PERF-epub", "  mupdf: fz_open_zip_archive_with_stream dt=%dms", (int)((t1.tv_sec - t0.tv_sec)*1000 + (t1.tv_nsec - t0.tv_nsec)/1000000));
+	return epub_init(ctx, zip, accel);
 }
 
 static fz_document *
