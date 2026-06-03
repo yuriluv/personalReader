@@ -175,21 +175,32 @@ jobs:
           path: app/build/outputs/apk/pro/release/*.apk
           retention-days: 90
 
+      - name: Read version from gradle.properties
+        id: version
+        run: |
+          BASE=$(grep 'appVersionNumberBase=' app/gradle.properties | cut -d= -f2)
+          IDX=$(grep 'appVersionNumberIndex=' app/gradle.properties | cut -d= -f2)
+          VERSION="${BASE}.${IDX}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Detected version: ${VERSION}"
+
       - name: Determine release tag
         id: release-tag
         run: |
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "is_latest=false" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "tag=v${{ steps.version.outputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "is_latest=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create/update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release-tag.outputs.tag }}
-          name: ${{ steps.release-tag.outputs.tag == 'latest' && 'Latest Build' || steps.release-tag.outputs.tag }}
-          prerelease: ${{ steps.release-tag.outputs.tag == 'latest' }}
+          name: ${{ steps.release-tag.outputs.is_latest == 'true' && 'Latest Build' || steps.release-tag.outputs.tag }}
+          prerelease: ${{ steps.release-tag.outputs.is_latest }}
           generate_release_notes: true
           files: app/build/outputs/apk/pro/release/*.apk
         env:
