@@ -1869,6 +1869,37 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     }
 
+    /**
+     * Called when the async page count is ready.
+     * Updates all UI elements that depend on the total page count:
+     * ViewPager adapter, seekBar, and progress indicators.
+     */
+    public void onPageCountReady(int realPageCount) {
+        if (dc == null) return;
+        dc.onPageCountReady(realPageCount);
+        LOG.d("onPageCountReady", realPageCount);
+
+        runOnUiThread(() -> {
+            // Recreate adapter with the real page count
+            createAdapter();
+            viewPager.setCurrentItem(dc.getCurentPage(), false);
+
+            // Update seek bar and progress indicators
+            seekBar.setMax(dc.getPageCount() - 1);
+            seekBar.setProgress(dc.getCurentPage());
+            bottomIndicators.setOnTouchListener(new HorizontallSeekTouchEventListener(onSeek, dc.getPageCount(), false));
+            progressDraw.setOnTouchListener(new HorizontallSeekTouchEventListener(onSeek, dc.getPageCount(), false));
+            progressDraw.updatePageCount(dc.getPageCount());
+
+            // Re-trigger outline loading (depends on total page count)
+            dc.getOutline(result -> {
+                progressDraw.updateDivs(result);
+                showPagesHelper();
+                return false;
+            }, false);
+        });
+    }
+
     public void showHelp() {
         if (AppSP.get().isFirstTimeHorizontal) {
             handler.postDelayed(new Runnable() {
@@ -1999,12 +2030,11 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         LOG.d("createAdapter");
         nullAdapter();
         pagerAdapter = null;
-        final int count = dc.getPageCount();
         pagerAdapter = new UpdatableFragmentPagerAdapter(getSupportFragmentManager()) {
 
             @Override
             public int getCount() {
-                return count;
+                return dc.getPageCount();
             }
 
             @Override

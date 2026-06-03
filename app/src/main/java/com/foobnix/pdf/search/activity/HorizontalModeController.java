@@ -61,6 +61,7 @@ public abstract class HorizontalModeController extends DocumentController {
     CodecDocument codeDocument;
     int imageWidth, imageHeight;
     private int pagesCount;
+    private boolean pageCountPending = false;
     private CopyAsyncTask searchTask;
     private boolean isTextFormat = false;
     private SharedPreferences matrixSP;
@@ -129,28 +130,37 @@ public abstract class HorizontalModeController extends DocumentController {
             imageWidth = Dips.screenWidth() / 2;
         }
 
-        codeDocument = ImageExtractor.getNewCodecContext(bookPath, pasw, imageWidth, imageHeight);
-        if (codeDocument != null) {
-            pagesCount = codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
-        } else {
-            pagesCount = 0;
+        codeDocument = ImageExtractor.openDocumentWithoutCount(bookPath, pasw, imageWidth, imageHeight);
+        if (codeDocument == null) {
+            CacheZipUtils.emptyAllCacheDirs();
+            throw new IllegalArgumentException("Failed to open document: " + bookPath);
         }
 
-        if (pagesCount <= 0) {
-            CacheZipUtils.emptyAllCacheDirs();
-            throw new IllegalArgumentException("Pages count: "+pagesCount);
+        // Start async page counting.
+        // If accelerator exists (re-open), getPageCount() returns instantly.
+        // If not (first open), getPageCount() blocks until all chapters are laid out.
+        // We call it on the current background thread (CopyAsyncTask) and let
+        // the caller decide whether to use the result immediately or show a placeholder.
+        pagesCount = codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
+        if (pagesCount > 0) {
+            pageCountPending = false;
+        } else {
+            // This shouldn't happen for valid documents, but handle gracefully.
+            pageCountPending = true;
+            pagesCount = 1; // Placeholder: allow activity to show first page
         }
 
         try {
-            FileMeta meta = AppDB.get()
-                                 .load(bookPath);
-            if (meta != null) {
-                meta.setPages(pagesCount);
-                AppDB.get()
-                     .update(meta);
-                LOG.d("update openDocument.getPageCount()", bookPath, pagesCount);
+            if (!pageCountPending) {
+                FileMeta meta = AppDB.get()
+                                     .load(bookPath);
+                if (meta != null) {
+                    meta.setPages(pagesCount);
+                    AppDB.get()
+                         .update(meta);
+                    LOG.d("update openDocument.getPageCount()", bookPath, pagesCount);
+                }
             }
-
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -493,6 +503,34 @@ public abstract class HorizontalModeController extends DocumentController {
 
     @Override public int getPageCount() {
         return PageUrl.realToFake(pagesCount);
+    }
+
+    /**
+     * Called when the background page count is ready.
+     * Updates pagesCount and notifies the activity to refresh UI.
+     */
+    public void onPageCountReady(int realPageCount) {
+        if (realPageCount <= 0) {
+            LOG.d("onPageCountReady", "invalid count:", realPageCount);
+            return;
+        }
+        this.pagesCount = realPageCount;
+        this.pageCountPending = false;
+
+        try {
+            FileMeta meta = AppDB.get().load(bookPath);
+            if (meta != null) {
+                meta.setPages(pagesCount);
+                AppDB.get().update(meta);
+                LOG.d("onPageCountReady", bookPath, pagesCount);
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    public boolean isPageCountPending() {
+        return pageCountPending;
     }
 
     @Override public void onScrollY(int value) {

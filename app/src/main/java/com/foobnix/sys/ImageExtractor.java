@@ -233,6 +233,46 @@ public class ImageExtractor {
 
     }
 
+    /**
+     * Opens a document without calling getPageCount().
+     * Returns the CodecDocument with pageCount=0; the caller must call
+     * getPageCount() separately (possibly on a background thread).
+     */
+    public static synchronized CodecDocument openDocumentWithoutCount(final String path, String passw, int w, int h) {
+        if (path.equals(pathCache) && codeCache != null && !codeCache.isRecycled()) {
+            LOG.d("openDocumentWithoutCount cache", path, w, h);
+            return codeCache;
+        }
+        LOG.d("openDocumentWithoutCount new", path, w, h);
+
+        clearCodeDocument();
+
+        pageCount = 0;
+        pathCache = null;
+
+        if (w <= 0 || h <= 0) {
+            w = Dips.screenWidth();
+            h = Dips.screenHeight();
+        }
+
+        CodecContext ctx = BookType.getCodecContextByPath(path);
+        if (ctx == null) {
+            return null;
+        }
+
+        codeCache = ctx.openDocument(path, passw);
+        if (codeCache == null) {
+            LOG.d("openDocumentWithoutCount [Open doc is null]", path);
+            return null;
+        }
+
+        // Cache the path even though we don't have the page count yet.
+        // The page count will be set later via setPageCount().
+        pathCache = path;
+        whCache = h + w;
+        return codeCache;
+    }
+
     public static Bitmap messageFileBitmap(String msg, String name) {
         return BaseExtractor.getBookCoverWithTitle(msg, name, true);
     }
