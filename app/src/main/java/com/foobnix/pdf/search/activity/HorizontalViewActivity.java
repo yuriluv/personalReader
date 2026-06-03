@@ -965,6 +965,8 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             @Override
             protected Object doInBackground(Object... params) {
                 try {
+                    long t0 = System.currentTimeMillis();
+                    LOG.d("[PERF-epub] doInBackground start", t0);
                     LOG.d("doRotation(this)", AppState.get().orientation, HorizontalViewActivity.this.getRequestedOrientation());
                     try {
                         //Thread.sleep(3000);
@@ -996,7 +998,9 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                     } catch (InterruptedException e) {
                     }
                     LOG.d("viewPager", viewPager.getHeight() + "x" + viewPager.getWidth());
+                    LOG.d("[PERF-epub] before initAsync", System.currentTimeMillis() - t0, "ms");
                     initAsync(viewPager.getWidth(), viewPager.getHeight());
+                    LOG.d("[PERF-epub] after initAsync", System.currentTimeMillis() - t0, "ms");
                     // Init async is immediate: doc is open but pageCount is 1 (placeholder).
                     // We'll resolve the real page count in onPostExecute via resolvePageCount().
                 } catch (MuPdfPasswordException e) {
@@ -1023,6 +1027,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
             @Override
             protected void onPostExecute(Object result) {
+                LOG.d("[PERF-epub] onPostExecute start", System.currentTimeMillis() - start, "ms total");
                 if (AppsConfig.IS_LOG) {
                     long time = System.currentTimeMillis() - start;
                     float sec = (float) time / 1000;
@@ -1177,9 +1182,11 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                     // If not (first open), this runs getPageCount() on a background thread.
                     if (dc.isPageCountPending()) {
                         final HorizontalModeController dcRef = dc;
+                        final long resolveStart = System.currentTimeMillis();
                         AppsConfig.executorService.submit(() -> {
+                            LOG.d("[PERF-epub] resolvePageCount start", resolveStart);
                             int count = dcRef.resolvePageCount();
-                            LOG.d("AsyncPageCount", "resolved:", count);
+                            LOG.d("[PERF-epub] resolvePageCount done", System.currentTimeMillis() - resolveStart, "ms count=", count);
                             if (count > 0) {
                                 HorizontalViewActivity.this.onPageCountReady(count);
                             }
