@@ -130,7 +130,9 @@ public abstract class HorizontalModeController extends DocumentController {
             imageWidth = Dips.screenWidth() / 2;
         }
 
+        long t1 = System.currentTimeMillis();
         codeDocument = ImageExtractor.openDocumentWithoutCount(bookPath, pasw, imageWidth, imageHeight);
+        android.util.Log.d("PERF-epub", "openDocumentWithoutCount dt=" + (System.currentTimeMillis() - t1) + "ms");
         if (codeDocument == null) {
             CacheZipUtils.emptyAllCacheDirs();
             throw new IllegalArgumentException("Failed to open document: " + bookPath);
@@ -525,7 +527,10 @@ public abstract class HorizontalModeController extends DocumentController {
         if (codeDocument == null) {
             return -1;
         }
-        return codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
+        long t = System.currentTimeMillis();
+        int count = codeDocument.getPageCount(imageWidth, imageHeight, BookCSS.get().fontSizeSp);
+        android.util.Log.d("PERF-epub", "getPageCount dt=" + (System.currentTimeMillis() - t) + "ms count=" + count);
+        return count;
     }
 
     @Override public void onScrollY(int value) {
