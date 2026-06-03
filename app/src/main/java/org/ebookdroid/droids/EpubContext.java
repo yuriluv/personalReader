@@ -48,11 +48,13 @@ EpubContext extends PdfContext {
 
     @Override
     public CodecDocument openDocumentInner(final String fileName, String password) {
+        long t0 = System.currentTimeMillis();
         LOG.d(TAG, fileName);
 
         Map<String, String> notes = null;
         if (AppState.get().isShowFooterNotesInText) {
             notes = getNotes(fileName);
+            android.util.Log.d("PERF-epub", "  EpubContext: getNotes dt=" + (System.currentTimeMillis() - t0) + "ms");
             LOG.d("footer-notes-extracted");
         }
         if (cacheFile == null) {
@@ -60,7 +62,11 @@ EpubContext extends PdfContext {
         }
 
         if ( /** LibreraBuildConfig.DEBUG || **/(AppState.get().isEnableTextReplacement || BookCSS.get().isAutoHypens || AppState.get().isReferenceMode || AppState.get().isShowFooterNotesInText) && !cacheFile.isFile()) {
+            long tph0 = System.currentTimeMillis();
             EpubExtractor.proccessHypens(fileName, cacheFile.getPath(), notes);
+            android.util.Log.d("PERF-epub", "  EpubContext: proccessHypens dt=" + (System.currentTimeMillis() - tph0) + "ms (cache miss)");
+        } else {
+            android.util.Log.d("PERF-epub", "  EpubContext: proccessHypens SKIPPED (cache hit or disabled)");
         }
 
         String bookPath = (AppState.get().isEnableTextReplacement || BookCSS.get().isAutoHypens || AppState.get().isReferenceMode || AppState.get().isShowFooterNotesInText) ? cacheFile.getPath() : fileName;
