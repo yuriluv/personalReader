@@ -5,13 +5,8 @@ import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.ext.EpubExtractor;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
-import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.JsonHelper;
 import com.foobnix.pdf.info.model.BookCSS;
-import com.foobnix.sys.TempHolder;
-
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 
 import org.ebookdroid.core.codec.CodecDocument;
 import org.ebookdroid.droids.mupdf.codec.MuPdfDocument;
@@ -51,54 +46,50 @@ EpubContext extends PdfContext {
         long t0 = System.currentTimeMillis();
         LOG.d(TAG, fileName);
 
-        Map<String, String> notes = null;
-        if (AppState.get().isShowFooterNotesInText) {
-            notes = getNotes(fileName);
-            android.util.Log.d("PERF-epub", "  EpubContext: getNotes dt=" + (System.currentTimeMillis() - t0) + "ms");
-            LOG.d("footer-notes-extracted");
-        }
         if (cacheFile == null) {
             cacheFile = getCacheFileName(fileName);
         }
 
-        if ( /** LibreraBuildConfig.DEBUG || **/(AppState.get().isEnableTextReplacement || BookCSS.get().isAutoHypens || AppState.get().isReferenceMode || AppState.get().isShowFooterNotesInText) && !cacheFile.isFile()) {
-            long tph0 = System.currentTimeMillis();
-            EpubExtractor.proccessHypens(fileName, cacheFile.getPath(), notes);
-            android.util.Log.d("PERF-epub", "  EpubContext: proccessHypens dt=" + (System.currentTimeMillis() - tph0) + "ms (cache miss)");
+        final boolean needsProcessing = AppState.get().isEnableTextReplacement || BookCSS.get().isAutoHypens || AppState.get().isReferenceMode || AppState.get().isShowFooterNotesInText;
+        final boolean hasCache = cacheFile.isFile();
+
+        // Determine bookPath: use cached file if available, otherwise original
+        String bookPath;
+        if (needsProcessing && hasCache) {
+            // Cache hit — use processed EPUB (existing fast path)
+            bookPath = cacheFile.getPath();
+            android.util.Log.d("PERF-epub", "  EpubContext: cache HIT, using processed file");
         } else {
-            android.util.Log.d("PERF-epub", "  EpubContext: proccessHypens SKIPPED (cache hit or disabled)");
-        }
-
-        String bookPath = (AppState.get().isEnableTextReplacement || BookCSS.get().isAutoHypens || AppState.get().isReferenceMode || AppState.get().isShowFooterNotesInText) ? cacheFile.getPath() : fileName;
-
-        if (AppsConfig.IS_LOG) {//accelerate open books
-            File out = new File(cacheFile.getPath() + "-source");
-            try {
-                if (!out.isDirectory()) {
-                    out.mkdirs();
-                    new ZipFile(bookPath).extractAll(out.getPath());
-                    LOG.d("EpubContext unzip all", out.getPath());
-
-                }
-                //bookPath = out.getPath() + "/META-INF/container.xml";
-                LOG.d("EpubContext open", bookPath);
-            } catch (ZipException e) {
-                LOG.e(e);
-            }
-
+            // Cache miss or no processing needed — use original EPUB for immediate render
+            bookPath = fileName;
+            android.util.Log.d("PERF-epub", "  EpubContext: cache MISS, using original file");
         }
 
         final MuPdfDocument muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, bookPath, password);
         muPdfDocument.cacheFilename = bookPath;
 
-        if (notes != null) {
-            muPdfDocument.setFootNotes(notes);
-        }
-
-        Thread t = new Thread("@T openDocument") {
+        // Background thread: defer heavy processing
+        Thread bgThread = new Thread("@T epubProcess") {
             @Override
             public void run() {
                 try {
+                    Map<String, String> notes = null;
+                    if (AppState.get().isShowFooterNotesInText) {
+                        notes = getNotes(fileName);
+                        android.util.Log.d("PERF-epub", "  EpubContext:bg getNotes dt=" + (System.currentTimeMillis() - t0) + "ms");
+                    }
+
+                    if (needsProcessing && !hasCache) {
+                        // Cache miss: process EPUB in background
+                        long tph0 = System.currentTimeMillis();
+                        EpubExtractor.proccessHypens(fileName, cacheFile.getPath(), notes);
+                        android.util.Log.d("PERF-epub", "  EpubContext:bg proccessHypens dt=" + (System.currentTimeMillis() - tph0) + "ms");
+                    }
+
+                    // Set notes on document if available
+                    if (notes != null && !muPdfDocument.isRecycled()) {
+                        muPdfDocument.setFootNotes(notes);
+                    }
 
                     if (muPdfDocument.getFootNotes() == null) {
                         muPdfDocument.setFootNotes(getNotes(fileName));
@@ -108,13 +99,14 @@ EpubContext extends PdfContext {
                     removeTempFilesIfCancel();
                 } catch (Throwable e) {
                     LOG.e(e);
+                    android.util.Log.d("PERF-epub", "  EpubContext:bg FAILED: " + e.getMessage());
                 }
             }
-
         };
-        t.setPriority(Thread.MIN_PRIORITY);
-        t.start();
+        bgThread.setPriority(Thread.MIN_PRIORITY);
+        bgThread.start();
 
+        android.util.Log.d("PERF-epub", "  EpubContext:openDocumentInner dt=" + (System.currentTimeMillis() - t0) + "ms");
         return muPdfDocument;
     }
 
