@@ -71,6 +71,9 @@ public abstract class HorizontalModeController extends DocumentController {
 
     // Chapter Fast Load (Approach 2) state
     private boolean chapterPreRender = false;
+    // Guard: when onPageCountReady just set currentPage, ignore spurious
+    // onPageSelected(0) from ViewPager until the controlled setCurrentItem completes
+    private boolean positionRestoring = false;
     private int preRenderChapter = -1;
     private int preRenderPage = -1;
     /** Cached pages-per-chapter array for chapter-level position tracking. Null if not an EPUB. */
@@ -298,6 +301,10 @@ public abstract class HorizontalModeController extends DocumentController {
     }
 
     public void setCurrentPage(int page) {
+        if (positionRestoring) {
+            android.util.Log.d("DEBUG-e3a7", "[setCurrentPage] BLOCKED by positionRestoring, ignored page=" + page);
+            return;
+        }
         currentPage = page;
     }
 
@@ -542,6 +549,10 @@ public abstract class HorizontalModeController extends DocumentController {
      * Called when the background page count is ready.
      * Updates pagesCount and notifies the activity to refresh UI.
      */
+    public void setPositionRestoring(boolean restoring) {
+        this.positionRestoring = restoring;
+    }
+
     public void onPageCountReady(int realPageCount) {
         if (realPageCount <= 0) {
             LOG.d("onPageCountReady", "invalid count:", realPageCount);

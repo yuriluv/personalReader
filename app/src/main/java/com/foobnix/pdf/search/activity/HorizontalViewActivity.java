@@ -1909,6 +1909,10 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         LOG.d("onPageCountReady", realPageCount);
 
         runOnUiThread(() -> {
+            // Guard: block spurious onPageSelected(0) from ViewPager
+            // during position restoration after page count becomes available
+            dc.setPositionRestoring(true);
+
             // Update page count on UI thread to avoid ViewPager crash
             // "Expected adapter item count: 1, found: N"
             dc.onPageCountReady(realPageCount);
@@ -1921,6 +1925,9 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
             // Ensure current page is correct after count update
             viewPager.setCurrentItem(dc.getCurentPage(), false);
+
+            // Position restoration complete — allow onPageSelected to update currentPage again
+            dc.setPositionRestoring(false);
 
             // Update seek bar and progress indicators
             seekBar.setMax(dc.getPageCount() - 1);
