@@ -4,6 +4,7 @@ import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.MyMath;
 import com.foobnix.android.utils.Objects;
 import com.foobnix.pdf.info.Urls;
+import com.foobnix.pdf.search.activity.PageShiftCalculator;
 import com.foobnix.sys.TempHolder;
 
 import org.ebookdroid.core.PageIndex;
@@ -33,11 +34,14 @@ public class AppBook implements CurrentPageListener {
     public long t;//time
     public String ln;
 
+    public int chapterIdx = -1;  // chapter index within EPUB spine (0-based), -1 = unknown
+    public int pageInChapter = -1; // page offset within the chapter (0-based), -1 = unknown
+
     public boolean rtl = Urls.isRtl();
 
     @Override
     public int hashCode() {
-        final String s = "" + path + z + sp + cp + dp + dc + lk + (int) (x * 100) + (int) (y * 100) + this.s + d + p + ln + rtl;
+        final String s = "" + path + z + sp + cp + dp + dc + lk + (int) (x * 100) + (int) (y * 100) + this.s + d + p + ln + rtl + chapterIdx + pageInChapter;
         LOG.d("hashCode-appbook", s);
         return s.hashCode();
     }
@@ -79,9 +83,6 @@ public class AppBook implements CurrentPageListener {
 
     public void currentPageChanged(int page, int pages) {
         if (page <= 0 || pages <= 0) {
-            //if (LOG.isEnable) {
-            //    throw new RuntimeException("Error!!! " + page + " : " + pages);
-            //}
             LOG.d("currentPageChanged ERROR!!!", page + " : " + pages);
             return;
         }
@@ -93,6 +94,19 @@ public class AppBook implements CurrentPageListener {
             TempHolder.listHash++;
         }
 
+    }
+
+    /**
+     * Update chapter-level position from an absolute 0-based page number.
+     * Called by the controller after onPageCountReady when cachedPagesInChapter is available.
+     */
+    public void updateChapterPosition(int absolutePage, int[] pagesInChapter) {
+        if (pagesInChapter == null || absolutePage < 0) return;
+        int[] cp = PageShiftCalculator.toChapterPage(absolutePage, pagesInChapter);
+        if (cp != null) {
+            this.chapterIdx = cp[0];
+            this.pageInChapter = cp[1];
+        }
     }
 
 

@@ -13,6 +13,9 @@
 #include "mupdf/pdf.h"
 #include "androidfonts.h"
 
+/* Forward declaration: chapter-level page loader from epub-doc.c (non-static) */
+extern fz_page *epub_load_page(fz_context *ctx, fz_document *doc, int chapter, int number);
+
 /* Debugging helper */
 
 #define DEBUG(args...) __android_log_print(ANDROID_LOG_DEBUG, "MuPDF", args)
@@ -810,6 +813,119 @@ JNIEXPORT jlong
     DEBUG("MuPdfPage_open(%p, %d): finish: %p", doc, pageno, page);
 
     return (jlong)(long)page;
+}
+
+/* Extern declaration for epub_load_page (non-static in epub-doc.c).
+ * Loads a single EPUB chapter by (chapter, page_within_chapter) without
+ * requiring fz_count_pages() to have completed first. */
+extern fz_page *epub_load_page(fz_context *ctx, fz_document *doc, int chapter, int number);
+
+JNIEXPORT jlong
+JNICALL
+Java_org_ebookdroid_droids_mupdf_codec_MuPdfPage_openChapterPage(JNIEnv* env, jclass clazz, jlong dochandle, jint chapter, jint pageInChapter)
+{
+    renderdocument_t* doc = (renderdocument_t*)(long)dochandle;
+    renderpage_t* page = NULL;
+    fz_device* dev = NULL;
+
+    DEBUG("MuPdfPage_openChapterPage(%p, ch=%d, pg=%d): start", doc, chapter, pageInChapter);
+
+    fz_context* ctx = doc->ctx;
+    if (!ctx || doc->ctx == NULL) {
+        mupdf_throw_exception(env, "Context cloning failed");
+        return (jlong)(long)NULL;
+    }
+
+    page = fz_malloc_no_throw(ctx, sizeof(renderpage_t));
+    if (!page) {
+        mupdf_throw_exception(env, "Out of Memory");
+        return (jlong)(long)NULL;
+    }
+
+    page->ctx = ctx;
+    page->page = NULL;
+    page->pageList = NULL;
+
+    fz_try(ctx)
+    {
+        page->page = epub_load_page(ctx, doc->document, chapter, pageInChapter);
+        if (!page->page) {
+            fz_throw(ctx, FZ_ERROR_ARGUMENT, "epub_load_page returned NULL for chapter=%d page=%d", chapter, pageInChapter);
+        }
+        fz_rect mediabox = fz_bound_page(ctx, page->page);
+
+        page->pageList = fz_new_display_list(ctx, mediabox);
+
+        dev = fz_new_list_device(ctx, page->pageList);
+
+        fz_run_page(ctx, page->page, dev, fz_identity, NULL);
+    }
+    fz_always(ctx)
+    {
+        fz_close_device(ctx, dev);
+        fz_drop_device(ctx, dev);
+
+        dev = NULL;
+    }
+    fz_catch(ctx)
+    {
+        DEBUG("MuPdfPage_openChapterPage(%p, ch=%d, pg=%d): error", doc, chapter, pageInChapter);
+    }
+
+    DEBUG("MuPdfPage_openChapterPage(%p, ch=%d, pg=%d): finish: %p", doc, chapter, pageInChapter, page);
+
+    return (jlong)(long)page;
+}
+
+/* Return int[] of pages-per-chapter after layout.
+ * Must be called AFTER getPageCount() (which runs fz_layout_document).
+ * Returns NULL (0-length array) for non-EPUB documents. */
+JNIEXPORT jintArray JNICALL
+Java_org_ebookdroid_droids_mupdf_codec_MuPdfDocument_getPagesInChapter(JNIEnv* env, jclass clazz, jlong handle)
+{
+    renderdocument_t* doc = (renderdocument_t*)(long)handle;
+    if (!doc || !doc->ctx || !doc->document) {
+        return NULL;
+    }
+
+    fz_context* ctx = doc->ctx;
+    int chapterCount = 0;
+    jintArray result = NULL;
+
+    fz_try(ctx)
+    {
+        chapterCount = fz_count_chapters(ctx, doc->document);
+        if (chapterCount <= 0) {
+            fz_throw(ctx, FZ_ERROR_ARGUMENT, "no chapters");
+        }
+
+        jint *buf = (jint*)fz_malloc_no_throw(ctx, sizeof(jint) * chapterCount);
+        if (!buf) {
+            fz_throw(ctx, FZ_ERROR_ARGUMENT, "OOM");
+        }
+
+        int totalPages = 0;
+        for (int ch = 0; ch < chapterCount; ch++) {
+            int pages = fz_count_pages_in_chapter(ctx, doc->document, ch);
+            buf[ch] = pages;
+            totalPages += pages;
+        }
+
+        DEBUG("getPagesInChapter: %d chapters, %d total pages", chapterCount, totalPages);
+
+        result = (*env)->NewIntArray(env, chapterCount);
+        if (result) {
+            (*env)->SetIntArrayRegion(env, result, 0, chapterCount, buf);
+        }
+        fz_free(ctx, buf);
+    }
+    fz_catch(ctx)
+    {
+        DEBUG("getPagesInChapter: error");
+        result = NULL;
+    }
+
+    return result;
 }
 
 JNIEXPORT void JNICALL

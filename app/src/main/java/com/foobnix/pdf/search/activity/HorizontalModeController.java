@@ -18,6 +18,8 @@ import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.model.AppBook;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
+import com.foobnix.model.PageLoadStrategy;
+import com.foobnix.model.SharedBooks;
 import com.foobnix.pdf.CopyAsyncTask;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
@@ -66,6 +68,25 @@ public abstract class HorizontalModeController extends DocumentController {
     private boolean isTextFormat = false;
     private SharedPreferences matrixSP;
     private volatile boolean isClosed = false;
+
+    // Chapter Fast Load (Approach 2) state
+    private boolean chapterPreRender = false;
+    private int preRenderChapter = -1;
+    private int preRenderPage = -1;
+    /** Cached pages-per-chapter array for chapter-level position tracking. Null if not an EPUB. */
+    private int[] cachedPagesInChapter = null;
+
+    public boolean isChapterPreRender() {
+        return chapterPreRender;
+    }
+
+    public int getPreRenderChapter() {
+        return preRenderChapter;
+    }
+
+    public int getPreRenderPage() {
+        return preRenderPage;
+    }
 
     @Override public boolean hasPDFAnnotations() {
         return false;
@@ -148,7 +169,32 @@ public abstract class HorizontalModeController extends DocumentController {
         AppDB.get()
              .addRecent(bookPath);
 
-        currentPage = 0; // Start at first page; adjusted in resolvePageCount
+        // Determine initial page based on load strategy
+        PageLoadStrategy strategy = PageLoadStrategy.fromInt(AppSP.get().pageLoadStrategy);
+        if (strategy == PageLoadStrategy.CHAPTER_FAST && isTextFormat) {
+            // Approach 2: try to restore chapter-level position
+            AppBook bs = SettingsManager.getBookSettings(bookPath);
+            if (bs != null && bs.chapterIdx >= 0 && bs.pageInChapter >= 0) {
+                chapterPreRender = true;
+                preRenderChapter = bs.chapterIdx;
+                preRenderPage = bs.pageInChapter;
+                currentPage = 0; // ViewPager shows index 0, but we render the chapter page there
+            } else {
+                // First open: render chapter 0, page 0
+                chapterPreRender = true;
+                preRenderChapter = 0;
+                preRenderPage = 0;
+                currentPage = 0;
+            }
+            // Configure MuPdfDocument for chapter pre-render
+            if (codeDocument instanceof org.ebookdroid.droids.mupdf.codec.MuPdfDocument) {
+                ((org.ebookdroid.droids.mupdf.codec.MuPdfDocument) codeDocument)
+                    .setChapterPreRender(preRenderChapter, preRenderPage);
+            }
+        } else {
+            // Approach 1 (NON_CHAPTER_FAST) or non-EPUB: original behavior
+            currentPage = 0; // Start at first page; adjusted in resolvePageCount
+        }
 
         if (false) {
             PageImageState.get().needAutoFit = true;
@@ -449,6 +495,18 @@ public abstract class HorizontalModeController extends DocumentController {
         });
     }
 
+    @Override public void saveCurrentPage() {
+        super.saveCurrentPage();
+        // Also persist chapter-level position for Chapter Fast Load
+        if (cachedPagesInChapter != null && !pageCountPending) {
+            AppBook bs = SettingsManager.getBookSettings(bookPath);
+            if (bs != null) {
+                bs.updateChapterPosition(currentPage, cachedPagesInChapter);
+                SharedBooks.save(bs);
+            }
+        }
+    }
+
     @Override public void onCloseActivityAdnShowInterstial() {
         showInterstialAndClose();
 
@@ -491,10 +549,46 @@ public abstract class HorizontalModeController extends DocumentController {
         // Restore the user's last-read position now that we know the real page count.
         float percent = Intents.getFloatAndClear(activity.getIntent(), DocumentController.EXTRA_PERCENT);
         AppBook bs = SettingsManager.getBookSettings(bookPath);
-        if (percent > 0.0f) {
-            currentPage = Math.round(pagesCount * percent) - 1;
-        } else if (bs != null) {
-            currentPage = bs.getCurrentPage(getPageCount()).viewIndex;
+
+        PageLoadStrategy strategy = PageLoadStrategy.fromInt(AppSP.get().pageLoadStrategy);
+
+        // Cache pagesInChapter[] for later chapter-level position tracking
+        if (isTextFormat && codeDocument instanceof org.ebookdroid.droids.mupdf.codec.MuPdfDocument) {
+            cachedPagesInChapter = ((org.ebookdroid.droids.mupdf.codec.MuPdfDocument) codeDocument).getPagesInChapter();
+        }
+
+        if (chapterPreRender && strategy == PageLoadStrategy.CHAPTER_FAST && isTextFormat) {
+            // Approach 2: compute absolute page from chapter-level position
+            if (bs != null && bs.chapterIdx >= 0 && bs.pageInChapter >= 0) {
+                // Try precise chapter-level calculation using pagesInChapter[]
+                int absolutePage = -1;
+                if (codeDocument instanceof org.ebookdroid.droids.mupdf.codec.MuPdfDocument) {
+                    int[] pagesInChapter = ((org.ebookdroid.droids.mupdf.codec.MuPdfDocument) codeDocument).getPagesInChapter();
+                    absolutePage = PageShiftCalculator.toAbsolutePage(bs.chapterIdx, bs.pageInChapter, pagesInChapter);
+                }
+                if (absolutePage >= 0) {
+                    currentPage = absolutePage;
+                } else if (percent > 0.0f) {
+                    // Fallback: percent-based (less precise)
+                    currentPage = Math.round(pagesCount * percent) - 1;
+                } else {
+                    currentPage = bs.getCurrentPage(getPageCount()).viewIndex;
+                }
+            } else {
+                currentPage = 0;
+            }
+            chapterPreRender = false; // pre-render phase is complete
+            // Also clear MuPdfDocument's pre-render flag so subsequent page loads use normal path
+            if (codeDocument instanceof org.ebookdroid.droids.mupdf.codec.MuPdfDocument) {
+                ((org.ebookdroid.droids.mupdf.codec.MuPdfDocument) codeDocument).clearChapterPreRender();
+            }
+        } else {
+            // Approach 1 or non-EPUB: original percent-based restoration
+            if (percent > 0.0f) {
+                currentPage = Math.round(pagesCount * percent) - 1;
+            } else if (bs != null) {
+                currentPage = bs.getCurrentPage(getPageCount()).viewIndex;
+            }
         }
         if (AppState.get().isAlwaysOpenOnPage1) {
             currentPage = 0;

@@ -5,6 +5,7 @@ import android.graphics.RectF;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.ext.CacheZipUtils;
+import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.model.BookCSS;
@@ -47,6 +48,11 @@ public class MuPdfDocument extends AbstractCodecDocument {
     private volatile List<String> mediaAttachment;
     private int pagesCount = -1;
     private String fname;
+
+    // Chapter Fast Load (Approach 2) state
+    private boolean chapterPreRender = false;
+    private int preRenderChapter = -1;
+    private int preRenderPage = -1;
 
     public MuPdfDocument(final MuPdfContext context, final int format, final String fname, final String pwd) {
         super(context, openFile(format, fname, pwd, BookCSS.get()
@@ -112,6 +118,12 @@ public class MuPdfDocument extends AbstractCodecDocument {
                                             .getPath() + "+accel";
             accel = accel.replace(CacheZipUtils.CACHE_BOOK_DIR.getPath(), CacheZipUtils.CACHE_TEMP.getPath());
             LOG.d("accel cache2", accel, new File(accel).exists());
+
+            // Debug: disable accelerator to measure pure loading time
+            if (AppSP.get().isDisableAccelerator) {
+                accel = "";
+                LOG.d("accel", "ACCELERATOR DISABLED for testing");
+            }
 
             final long open = open(allocatedMemory, format, fname, pwd, css,
                     BookCSS.get().documentStyle == BookCSS.STYLES_ONLY_USER ? 0 : 1, BookCSS.get().imageScale,
@@ -223,9 +235,42 @@ public class MuPdfDocument extends AbstractCodecDocument {
     }
 
     @Override public CodecPage getPageInner(final int pageNumber) {
+        // Chapter Fast Load: when preRender is active and page 0 is requested,
+        // return the chapter pre-rendered page instead of absolute page 0.
+        if (chapterPreRender && pageNumber == 0 && isEpub) {
+            LOG.d("MuPdfDocument", "Chapter pre-render: ch=" + preRenderChapter + " pg=" + preRenderPage);
+            return MuPdfPage.createChapterPage(this, preRenderChapter, preRenderPage);
+        }
         MuPdfPage createPage = MuPdfPage.createPage(this, pageNumber + 1);
         return createPage;
     }
+
+    /** Set chapter pre-render parameters for Approach 2. */
+    public void setChapterPreRender(int chapter, int pageInChapter) {
+        this.chapterPreRender = true;
+        this.preRenderChapter = chapter;
+        this.preRenderPage = pageInChapter;
+    }
+
+    /** Clear chapter pre-render after onPageCountReady(). */
+    public void clearChapterPreRender() {
+        this.chapterPreRender = false;
+        this.preRenderChapter = -1;
+        this.preRenderPage = -1;
+    }
+
+    /**
+     * Get a page by chapter index and page-within-chapter.
+     * Bypasses fz_count_pages() — used for Chapter Fast Load (Approach 2).
+     * Only valid for EPUB documents.
+     */
+    public CodecPage getPageByChapter(final int chapter, final int pageInChapter) {
+        MuPdfPage createPage = MuPdfPage.createChapterPage(this, chapter, pageInChapter);
+        return createPage;
+    }
+
+    /** Return pages-per-chapter array. Must be called AFTER getPageCount(). Returns null on error. */
+    public native int[] getPagesInChapter();
 
     @Override public int getPageCount() {
         LOG.d("MuPdfDocument,getPageCount", getW(), getH(), BookCSS.get().fontSizeSp);

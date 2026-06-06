@@ -912,6 +912,13 @@
                 android:text="@string/opening_the_last_book_when_the_application_starts" />
 
             <CheckBox
+                android:id="@+id/isChapterFastLoad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:text="@string/chapter_fast_load" />
+
+            <CheckBox
                 android:id="@+id/isAlwaysOpenOnPage1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -72,6 +72,28 @@ public class MuPdfPage extends AbstractCodecPage {
         }
     }
 
+    /**
+     * Create a page by chapter index and page-within-chapter.
+     * Uses epub_load_page() internally, bypassing fz_count_pages().
+     * Only valid for EPUB documents.
+     */
+    static MuPdfPage createChapterPage(final MuPdfDocument dochandle, final int chapter, final int pageInChapter) {
+        TempHolder.lock.lock();
+        try {
+            if (dochandle.isRecycled()) {
+                LOG.d("MUPDF! +create chapter page isRecycled");
+                return null;
+            }
+            LOG.d("MUPDF! +create chapter page", chapter, pageInChapter, dochandle.getDocumentHandle());
+            final long open = openChapterPage(dochandle.getDocumentHandle(), chapter, pageInChapter);
+            // Page number is unknown at this point — chapter pre-render
+            // onPageCountReady() will compute the absolute page later
+            return new MuPdfPage(open, dochandle, -1);
+        } finally {
+            TempHolder.lock.unlock();
+        }
+    }
+
     private static native void getBounds(long dochandle, long handle, float[] bounds);
 
     private static native int getCharCount(long dochandle, long handle);
@@ -79,6 +101,9 @@ public class MuPdfPage extends AbstractCodecPage {
     private static native void free(long dochandle, long handle);
 
     private static native long open(long dochandle, int pageno);
+
+    /** Open a page by chapter index and page-within-chapter, bypassing fz_count_pages(). */
+    static native long openChapterPage(long dochandle, int chapter, int pageInChapter);
 
     private static void renderPageSafe(MuPdfDocument dochandle, long pagehandle, int[] viewboxarray, float[] matrixarray, int[] bufferarray, int r, int g, int b) {
         if (dochandle != null && dochandle.getDocumentHandle() != 0 && !dochandle.isRecycled()) {

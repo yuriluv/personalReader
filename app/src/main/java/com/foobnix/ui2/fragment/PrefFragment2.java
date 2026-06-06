@@ -63,6 +63,7 @@ import com.foobnix.drive.GFile;
 import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
+import com.foobnix.model.PageLoadStrategy;
 import com.foobnix.model.AppState;
 import com.foobnix.pdf.info.AndroidWhatsNew;
 import com.foobnix.pdf.info.AppsConfig;
@@ -1621,6 +1622,17 @@ public class PrefFragment2 extends UIFragment {
         isAlwaysOpenOnPage1.setChecked(AppState.get().isAlwaysOpenOnPage1);
         isAlwaysOpenOnPage1.setOnCheckedChangeListener((buttonView, isChecked) -> {
             AppState.get().isAlwaysOpenOnPage1 = isChecked;
+        });
+
+        // Chapter Fast Load toggle (Approach 2)
+        CheckBox isChapterFastLoad = inflate.findViewById(R.id.isChapterFastLoad);
+        PageLoadStrategy currentStrategy = PageLoadStrategy.fromInt(AppSP.get().pageLoadStrategy);
+        isChapterFastLoad.setChecked(currentStrategy == PageLoadStrategy.CHAPTER_FAST);
+        isChapterFastLoad.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            AppSP.get().pageLoadStrategy = isChecked
+                    ? PageLoadStrategy.CHAPTER_FAST.toInt()
+                    : PageLoadStrategy.NON_CHAPTER_FAST.toInt();
+            AppSP.get().save();
         });
         // app password
         final CheckBox isAppPassword = inflate.findViewById(R.id.isAppPassword);

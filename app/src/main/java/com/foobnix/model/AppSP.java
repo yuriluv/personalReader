@@ -44,6 +44,12 @@ public class AppSP {
     public boolean isEnableSync;
     public String syncRootID;
 
+    /** Page load strategy: 0 = CHAPTER_FAST (default), 1 = NON_CHAPTER_FAST. See PageLoadStrategy enum. */
+    public int pageLoadStrategy = PageLoadStrategy.DEFAULT.toInt();
+
+    /** Debug: disable MuPDF accelerator cache to measure pure loading time. */
+    public boolean isDisableAccelerator = false;
+
     public String currentProfile = "";
     public String rootPath1 = getRootDir();
 

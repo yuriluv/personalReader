@@ -43,6 +43,11 @@ public abstract class AbstractCodecDocument implements CodecDocument {
         return pageCache;
     }
 
+    @Override public CodecPage getPageByChapter(int chapter, int pageInChapter) {
+        // Default: not supported. MuPdfDocument overrides.
+        return null;
+    }
+
     @Override protected final void finalize() throws Throwable {
         // recycle();
         super.finalize();

@@ -586,7 +586,7 @@ epub_lookup_bookmark(fz_context *ctx, fz_document *doc_, fz_bookmark mark)
 	return fz_make_location(-1, -1);
 }
 
-static fz_page *
+fz_page *
 epub_load_page(fz_context *ctx, fz_document *doc_, int chapter, int number)
 {
 	epub_document *doc = (epub_document*)doc_;

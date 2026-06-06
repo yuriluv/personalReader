@@ -20,6 +20,9 @@ public interface CodecDocument {
 
     CodecPage getPageInner(int pageNuber);
 
+    /** Get a page by chapter index and page-within-chapter. EPUB only. */
+    CodecPage getPageByChapter(int chapter, int pageInChapter);
+
     CodecPageInfo getUnifiedPageInfo();
 
     CodecPageInfo getPageInfo(int pageNuber);
