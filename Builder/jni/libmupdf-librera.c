@@ -850,7 +850,7 @@ Java_org_ebookdroid_droids_mupdf_codec_MuPdfPage_openChapterPage(JNIEnv* env, jc
     {
         page->page = epub_load_page(ctx, doc->document, chapter, pageInChapter);
         if (!page->page) {
-            fz_throw(ctx, FZ_ERROR_ARGUMENT, "epub_load_page returned NULL for chapter=%d page=%d", chapter, pageInChapter);
+            fz_throw(ctx, FZ_ERROR_GENERIC, "epub_load_page returned NULL for chapter=%d page=%d", chapter, pageInChapter);
         }
         fz_rect mediabox = fz_bound_page(ctx, page->page);
 
@@ -896,17 +896,17 @@ Java_org_ebookdroid_droids_mupdf_codec_MuPdfDocument_getPagesInChapter(JNIEnv* e
     {
         chapterCount = fz_count_chapters(ctx, doc->document);
         if (chapterCount <= 0) {
-            fz_throw(ctx, FZ_ERROR_ARGUMENT, "no chapters");
+            fz_throw(ctx, FZ_ERROR_GENERIC, "no chapters");
         }
 
         jint *buf = (jint*)fz_malloc_no_throw(ctx, sizeof(jint) * chapterCount);
         if (!buf) {
-            fz_throw(ctx, FZ_ERROR_ARGUMENT, "OOM");
+            fz_throw(ctx, FZ_ERROR_GENERIC, "OOM");
         }
 
         int totalPages = 0;
         for (int ch = 0; ch < chapterCount; ch++) {
-            int pages = fz_count_pages_in_chapter(ctx, doc->document, ch);
+            int pages = fz_count_chapter_pages(ctx, doc->document, ch);
             buf[ch] = pages;
             totalPages += pages;
         }
