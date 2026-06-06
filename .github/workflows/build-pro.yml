@@ -87,7 +87,7 @@ jobs:
           path: |
             Builder/mupdf-${{ env.MUPDF_VERSION }}
             app/src/main/jniLibs
-          key: mupdf-${{ env.MUPDF_VERSION }}-ndk${{ env.NDK_VERSION }}-arm64-v3
+          key: mupdf-${{ env.MUPDF_VERSION }}-ndk${{ env.NDK_VERSION }}-arm64-v4
           restore-keys: |
             mupdf-${{ env.MUPDF_VERSION }}-ndk${{ env.NDK_VERSION }}-arm64-
 
