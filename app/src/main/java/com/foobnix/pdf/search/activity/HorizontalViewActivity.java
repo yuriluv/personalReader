@@ -1912,6 +1912,11 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             // Guard: block spurious onPageSelected(0) from ViewPager
             // during position restoration after page count becomes available
             dc.setPositionRestoring(true);
+            dc.setRestoredTargetPage(dc.getCurentPage());
+
+            // Safety net: clear positionRestoring after 2s in case ViewPager
+            // never fires onPageSelected for the target page (race condition).
+            viewPager.postDelayed(() -> dc.setPositionRestoring(false), 2000);
 
             // Update page count on UI thread to avoid ViewPager crash
             // "Expected adapter item count: 1, found: N"
@@ -1927,12 +1932,6 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
             // Ensure current page is correct after count update
             viewPager.setCurrentItem(dc.getCurentPage(), false);
-
-            // Position restoration complete — delay releasing the guard until the next
-            // layout pass so ViewPager's pending onPageSelected(0) from
-            // notifyDataSetChanged() is still blocked. The real onPageSelected for the
-            // correct position will fire after setCurrentItem's layout completes.
-            viewPager.post(() -> dc.setPositionRestoring(false));
 
             // Update seek bar and progress indicators
             seekBar.setMax(dc.getPageCount() - 1);

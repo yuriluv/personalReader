@@ -72,8 +72,9 @@ public abstract class HorizontalModeController extends DocumentController {
     // Chapter Fast Load (Approach 2) state
     private boolean chapterPreRender = false;
     // Guard: when onPageCountReady just set currentPage, ignore spurious
-    // onPageSelected(0) from ViewPager until the controlled setCurrentItem completes
+    // onPageSelected(0) from ViewPager notifyDataSetChanged().
     private boolean positionRestoring = false;
+    private int restoredTargetPage = -1; // the page we're restoring to
     private int preRenderChapter = -1;
     private int preRenderPage = -1;
     /** Cached pages-per-chapter array for chapter-level position tracking. Null if not an EPUB. */
@@ -302,8 +303,17 @@ public abstract class HorizontalModeController extends DocumentController {
 
     public void setCurrentPage(int page) {
         if (positionRestoring) {
-            android.util.Log.d("DEBUG-e3a7", "[setCurrentPage] BLOCKED by positionRestoring, ignored page=" + page);
-            return;
+            // During position restoration, ViewPager sends spurious onPageSelected(0)
+            // from notifyDataSetChanged(). Only accept the callback that matches our
+            // restored position — the real onPageSelected will fire after layout.
+            android.util.Log.d("DEBUG-e3a7", "[setCurrentPage] positionRestoring, page=" + page + " vs restored=" + restoredTargetPage);
+            if (page != restoredTargetPage) {
+                // Spurious callback — ignore. ViewPager hasn't reached our target yet.
+                return;
+            }
+            // This is the real onPageSelected for the target — accept it and clear the guard.
+            android.util.Log.d("DEBUG-e3a7", "[setCurrentPage] positionRestoring CONFIRMED, page=" + page);
+            positionRestoring = false;
         }
         currentPage = page;
     }
@@ -558,6 +568,10 @@ public abstract class HorizontalModeController extends DocumentController {
      */
     public void setPositionRestoring(boolean restoring) {
         this.positionRestoring = restoring;
+    }
+
+    public void setRestoredTargetPage(int page) {
+        this.restoredTargetPage = page;
     }
 
     public void onPageCountReady(int realPageCount) {
