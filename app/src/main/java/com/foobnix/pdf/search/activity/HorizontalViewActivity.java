@@ -1919,6 +1919,8 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
             // Notify adapter that count changed — avoids full recreate (no flicker).
             // ViewPager will re-query getCount() and request new pages incrementally.
+            // NOTE: This may cause ViewPager to fire onPageSelected(0) because the
+            // adapter count changed while ViewPager is still at position 0.
             if (pagerAdapter != null) {
                 pagerAdapter.notifyDataSetChanged();
             }
@@ -1926,8 +1928,11 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             // Ensure current page is correct after count update
             viewPager.setCurrentItem(dc.getCurentPage(), false);
 
-            // Position restoration complete — allow onPageSelected to update currentPage again
-            dc.setPositionRestoring(false);
+            // Position restoration complete — delay releasing the guard until the next
+            // layout pass so ViewPager's pending onPageSelected(0) from
+            // notifyDataSetChanged() is still blocked. The real onPageSelected for the
+            // correct position will fire after setCurrentItem's layout completes.
+            viewPager.post(() -> dc.setPositionRestoring(false));
 
             // Update seek bar and progress indicators
             seekBar.setMax(dc.getPageCount() - 1);

@@ -506,6 +506,13 @@ public abstract class HorizontalModeController extends DocumentController {
     }
 
     @Override public void saveCurrentPage() {
+        // Block saving while page count is still being resolved.
+        // pagesCount=1 placeholder causes currentPageChanged to set p=1.0 (100%),
+        // which on re-open jumps to the last page instead of the saved position.
+        if (pageCountPending) {
+            android.util.Log.d("DEBUG-e3a7", "[saveCurrentPage] SKIP — pageCountPending, pagesCount is placeholder");
+            return;
+        }
         super.saveCurrentPage();
         // Also persist chapter-level position for Chapter Fast Load
         android.util.Log.d("DEBUG-e3a7", "[saveCurrentPage] cachedPagesInChapter=" + (cachedPagesInChapter != null ? cachedPagesInChapter.length + "items" : "null") + " pageCountPending=" + pageCountPending + " currentPage=" + currentPage);
