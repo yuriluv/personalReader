@@ -1909,18 +1909,19 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         LOG.d("onPageCountReady", realPageCount);
 
         runOnUiThread(() -> {
+            // Update page count on UI thread to avoid ViewPager crash
+            // "Expected adapter item count: 1, found: N"
+            dc.onPageCountReady(realPageCount);
+
             // Guard: block spurious onPageSelected(0) from ViewPager
-            // during position restoration after page count becomes available
+            // during position restoration. Must be set AFTER onPageCountReady
+            // so currentPage has the restored value.
             dc.setPositionRestoring(true);
             dc.setRestoredTargetPage(dc.getCurentPage());
 
             // Safety net: clear positionRestoring after 2s in case ViewPager
             // never fires onPageSelected for the target page (race condition).
             viewPager.postDelayed(() -> dc.setPositionRestoring(false), 2000);
-
-            // Update page count on UI thread to avoid ViewPager crash
-            // "Expected adapter item count: 1, found: N"
-            dc.onPageCountReady(realPageCount);
 
             // Notify adapter that count changed — avoids full recreate (no flicker).
             // ViewPager will re-query getCount() and request new pages incrementally.
