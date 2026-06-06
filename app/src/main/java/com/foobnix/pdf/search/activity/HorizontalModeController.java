@@ -19,7 +19,7 @@ import com.foobnix.model.AppBook;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
 import com.foobnix.model.PageLoadStrategy;
-import com.foobnix.model.SharedBooks;
+import org.ebookdroid.common.settings.books.SharedBooks;
 import com.foobnix.pdf.CopyAsyncTask;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
