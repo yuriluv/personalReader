@@ -173,7 +173,7 @@ public abstract class HorizontalModeController extends DocumentController {
         PageLoadStrategy strategy = PageLoadStrategy.fromInt(AppSP.get().pageLoadStrategy);
         if (strategy == PageLoadStrategy.CHAPTER_FAST && isTextFormat) {
             // Approach 2: try to restore chapter-level position
-            AppBook bs = SettingsManager.getBookSettings(bookPath);
+            bs = SettingsManager.getBookSettings(bookPath);
             if (bs != null && bs.chapterIdx >= 0 && bs.pageInChapter >= 0) {
                 chapterPreRender = true;
                 preRenderChapter = bs.chapterIdx;
