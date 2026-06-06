@@ -270,7 +270,12 @@ public class MuPdfDocument extends AbstractCodecDocument {
     }
 
     /** Return pages-per-chapter array. Must be called AFTER getPageCount(). Returns null on error. */
-    public native int[] getPagesInChapter();
+    private native int[] getPagesInChapter(long handle);
+
+    /** Public wrapper that passes documentHandle internally. */
+    public int[] getPagesInChapter() {
+        return getPagesInChapter(documentHandle);
+    }
 
     @Override public int getPageCount() {
         LOG.d("MuPdfDocument,getPageCount", getW(), getH(), BookCSS.get().fontSizeSp);
