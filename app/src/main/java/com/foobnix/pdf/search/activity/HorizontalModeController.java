@@ -171,14 +171,17 @@ public abstract class HorizontalModeController extends DocumentController {
 
         // Determine initial page based on load strategy
         PageLoadStrategy strategy = PageLoadStrategy.fromInt(AppSP.get().pageLoadStrategy);
+        android.util.Log.d("DEBUG-e3a7", "[constructor] strategy=" + strategy + " isTextFormat=" + isTextFormat);
         if (strategy == PageLoadStrategy.CHAPTER_FAST && isTextFormat) {
             // Approach 2: try to restore chapter-level position
             bs = SettingsManager.getBookSettings(bookPath);
+            android.util.Log.d("DEBUG-e3a7", "[constructor] bs=" + bs + " chapterIdx=" + (bs != null ? bs.chapterIdx : "null") + " pageInChapter=" + (bs != null ? bs.pageInChapter : "null"));
             if (bs != null && bs.chapterIdx >= 0 && bs.pageInChapter >= 0) {
                 chapterPreRender = true;
                 preRenderChapter = bs.chapterIdx;
                 preRenderPage = bs.pageInChapter;
                 currentPage = 0; // ViewPager shows index 0, but we render the chapter page there
+                android.util.Log.d("DEBUG-e3a7", "[constructor] RESTORE chapterIdx=" + bs.chapterIdx + " pageInChapter=" + bs.pageInChapter);
             } else {
                 // First open: render chapter 0, page 0
                 chapterPreRender = true;
@@ -498,6 +501,7 @@ public abstract class HorizontalModeController extends DocumentController {
     @Override public void saveCurrentPage() {
         super.saveCurrentPage();
         // Also persist chapter-level position for Chapter Fast Load
+        android.util.Log.d("DEBUG-e3a7", "[saveCurrentPage] cachedPagesInChapter=" + (cachedPagesInChapter != null ? cachedPagesInChapter.length + "items" : "null") + " pageCountPending=" + pageCountPending + " currentPage=" + currentPage);
         if (cachedPagesInChapter != null && !pageCountPending) {
             AppBook bs = SettingsManager.getBookSettings(bookPath);
             if (bs != null) {
@@ -545,10 +549,12 @@ public abstract class HorizontalModeController extends DocumentController {
         }
         this.pagesCount = realPageCount;
         this.pageCountPending = false;
+        android.util.Log.d("DEBUG-e3a7", "[onPageCountReady] chapterPreRender=" + chapterPreRender + " pageCountPending=" + pageCountPending);
 
         // Restore the user's last-read position now that we know the real page count.
         float percent = Intents.getFloatAndClear(activity.getIntent(), DocumentController.EXTRA_PERCENT);
         AppBook bs = SettingsManager.getBookSettings(bookPath);
+        android.util.Log.d("DEBUG-e3a7", "[onPageCountReady] bs=" + bs + " chapterIdx=" + (bs != null ? bs.chapterIdx : "null") + " pageInChapter=" + (bs != null ? bs.pageInChapter : "null") + " percent=" + percent);
 
         PageLoadStrategy strategy = PageLoadStrategy.fromInt(AppSP.get().pageLoadStrategy);
 
@@ -578,6 +584,7 @@ public abstract class HorizontalModeController extends DocumentController {
                 currentPage = 0;
             }
             chapterPreRender = false; // pre-render phase is complete
+            android.util.Log.d("DEBUG-e3a7", "[onPageCountReady] FINAL currentPage=" + currentPage + " pagesCount=" + pagesCount);
             // Also clear MuPdfDocument's pre-render flag so subsequent page loads use normal path
             if (codeDocument instanceof org.ebookdroid.droids.mupdf.codec.MuPdfDocument) {
                 ((org.ebookdroid.droids.mupdf.codec.MuPdfDocument) codeDocument).clearChapterPreRender();
