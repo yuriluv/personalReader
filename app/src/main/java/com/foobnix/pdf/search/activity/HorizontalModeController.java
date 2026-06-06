@@ -594,6 +594,11 @@ public abstract class HorizontalModeController extends DocumentController {
             currentPage = 0;
         }
 
+        // Persist position immediately after count is ready and currentPage is resolved.
+        // Without this, chapterIdx/pageInChapter remain -1 until the next periodic
+        // saveCurrentPage() — which may never fire before the user closes the book.
+        saveCurrentPage();
+
         try {
             FileMeta meta = AppDB.get().load(bookPath);
             if (meta != null) {
